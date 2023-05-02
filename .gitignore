@@ -1,2 +1,5 @@
+# Ignore test related files
+/coverage.data
+/coverage/
 node_modules/
 .env
