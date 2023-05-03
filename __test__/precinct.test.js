@@ -1,6 +1,4 @@
 import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import precinct from "precinct";
 
 const readFile = async (fileName) => {
@@ -16,7 +14,7 @@ const readFile = async (fileName) => {
 
 describe("precinct", () => {
   it("should successfully retrieve the list of dependencies for a file", async () => {
-    const testFile = await readFile("/../../../../testFiles/index.js");
-    expect(precinct(testFile).length).toBeGreaterThan(0);
+    const testFile = await readFile(new URL('testFiles/index.js', import.meta.url));
+    expect(precinct(testFile.toString()).length).toBeGreaterThan(0);
   }); 
 });
