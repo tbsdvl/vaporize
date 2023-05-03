@@ -52,7 +52,7 @@ describe("regex", () => {
     expect(requirements.length).toBeGreaterThan(0);
     expect(requirements[0]).toBe("constexpress=require('express')");
 
-    const variableNames = getVariableNames(requirements, depArr);
+    const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBe(1);
     expect(variableNames[0]).toBe("express");
   });
@@ -68,7 +68,7 @@ describe("regex", () => {
     expect(requirements[0]).toBe("constexpress=require('express')");
     expect(requirements[1]).toBe(`constaxios=require("axios")`);
 
-    const variableNames = getVariableNames(requirements, depArr);
+    const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
     expect(variableNames[0]).toBe("express");
     expect(variableNames[1]).toBe("axios");
@@ -85,7 +85,7 @@ describe("regex", () => {
     expect(requirements[0]).toBe("constmyApp=require('express')");
     expect(requirements[1]).toBe(`consthttp=require("axios")`);
 
-    const variableNames = getVariableNames(requirements, depArr);
+    const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
     expect(variableNames[0]).toBe("myApp");
     expect(variableNames[1]).toBe("http");
