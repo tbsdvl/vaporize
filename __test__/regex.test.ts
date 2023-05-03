@@ -1,24 +1,17 @@
-import { DepRegex } from "../src/util";
+import { commonJS } from "../src/util";
 
 const getRequirements = (dependencies: string[], dependencyString: string): string[] => {
     return dependencies.map((dependency: string) => {
-        const cJSRegExp: RegExp = new RegExp(DepRegex.commonJS(dependency), "gm");
-        const matches: string[] = cJSRegExp.exec(dependencyString);
-        if (matches?.length === 1) {
-            return matches[0];
-        }
+      const cJSRegExp: RegExp = new RegExp(commonJS(dependency), "gm");
+      const matches: RegExpExecArray | null = cJSRegExp.exec(dependencyString);
+      return matches?.length === 1 ? matches[0] : "";
     }).filter(x => x);
 }
 
 const getVariableNames = (requirements: string[], dependencies: string[]): string[] => {
     for (let i = 0; i < requirements.length; i++) {
-        let requirement: string = requirements[i];
-        if (requirement.includes("const")) { // need checks for each variable keyword
-            requirement = requirement.replace("const", "");
-        }
-
-        requirement = requirement.replace(new RegExp(String.raw`=require\(["']${dependencies[i]}["']\)`, "gm"), ""); // need to replace based on dep's resolving alg
-        requirements[i] = requirement;
+      requirements[i] = requirements[i].includes("const") ? requirements[i].replace("const", "") : requirements[i]; // add checks for other variable keywords
+      requirements[i] = requirements[i].replace(new RegExp(String.raw`=require\(["']${dependencies[i]}["']\)`, "gm"), ""); // need to replace based on dep's resolving alg
     }
 
     return requirements;

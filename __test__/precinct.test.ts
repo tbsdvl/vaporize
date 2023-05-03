@@ -1,9 +1,9 @@
 import fs from "fs";
 import precinct from "precinct";
 
-const readFile = async (fileName) => {
+const readFile = async (fileName: URL): Promise<Buffer | NodeJS.ErrnoException> => {
     return new Promise((resolve, reject) => {
-        fs.readFile(fileName, (err, data) => {
+        fs.readFile(fileName, (err: NodeJS.ErrnoException | null, data: Buffer) => {
             if (err) {
                 reject(err);
             }

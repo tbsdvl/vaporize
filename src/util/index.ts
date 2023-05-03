@@ -1,5 +1,5 @@
-import DepRegex from "./DepRegex/index.ts";
+import { commonJS } from "./dep-regex/index.ts";
 
 export {
-    DepRegex,
+    commonJS,
 }
