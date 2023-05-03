@@ -5,8 +5,7 @@
  * @public
  */
 abstract class DepRegex {
-  
-    /**
+  /**
    * Returns a regex for commonJS require statement as a raw string.
    * @param {string} dep The name of the dependency.
    * @returns The regex for the dependency's commonJS require statement.
