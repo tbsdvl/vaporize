@@ -12,7 +12,7 @@ const getRequirements = (dependencies: string[], dependencyString: string): stri
 
 const getVariableNames = (requirements: string[], dependencies: string[]): string[] => {
     for (let i = 0; i < requirements.length; i++) {
-        let requirement = requirements[i];
+        let requirement: string = requirements[i];
         if (requirement.includes("const")) { // need checks for each variable keyword
             requirement = requirement.replace("const", "");
         }
