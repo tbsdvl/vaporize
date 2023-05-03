@@ -16,5 +16,10 @@ describe("precinct", () => {
   it("should successfully retrieve the list of dependencies for a file", async () => {
     const testFile = await readFile(new URL('testFiles/index.js', import.meta.url));
     expect(precinct(testFile.toString()).length).toBeGreaterThan(0);
-  }); 
+  });
+
+  // it("should successfully retrieve the list of dependencies for a file and find the variable name for the CommonJS dependency", async () => {
+  //   const testFile = await readFile(new URL('testFiles/index.js', import.meta.url));
+  //   expect(precinct(testFile.toString()).length).toBeGreaterThan(0);
+  // });
 });
