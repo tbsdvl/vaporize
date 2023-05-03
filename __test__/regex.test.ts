@@ -8,7 +8,7 @@ const getRequirements = (dependencies: string[], dependencyString: string): stri
     }).filter(x => x);
 }
 
-const getVariableNames = (requirements: (string)[], dependencies: (string | undefined)[]): (string | undefined)[] => {
+const getVariableNames = (requirements: (string)[], dependencies: string[]): string[] => {
     for (let i = 0; i < requirements.length; i++) {
       requirements[i] = requirements[i].includes("const") ? requirements[i].replace("const", "") : requirements[i]; // add checks for other variable keywords
       requirements[i] = requirements[i].replace(new RegExp(String.raw`=require\(["']${dependencies[i]}["']\)`, "gm"), ""); // need to replace based on dep's resolving alg
