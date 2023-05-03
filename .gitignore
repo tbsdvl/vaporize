@@ -1,3 +1,7 @@
+# vscode
+.vscode/
+dist/
+
 # Ignore test related files
 /coverage.data
 /coverage/
