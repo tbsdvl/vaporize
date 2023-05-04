@@ -11,9 +11,9 @@ const getRequirements = (dependencies: string[], dependencyString: string): stri
 
 const getVariableNames = (requirements: string[], dependencies: string[]): string[] => {
     for (let i = 0; i < requirements.length; i++) {
-      requirements[i] = requirements[i].includes(VAR_KEY_WORDS.const) ? requirements[i].replace(VAR_KEY_WORDS.const, "") : requirements[i]; // add checks for other variable keywords
-      requirements[i] = requirements[i].includes(VAR_KEY_WORDS.var) ? requirements[i].replace(VAR_KEY_WORDS.var, "") : requirements[i]; // add checks for other variable keywords
-      requirements[i] = requirements[i].includes(VAR_KEY_WORDS.let) ? requirements[i].replace(VAR_KEY_WORDS.let, "") : requirements[i]; // add checks for other variable keywords
+      requirements[i] = requirements[i].includes(VAR_KEY_WORDS.const) ? requirements[i].replace(VAR_KEY_WORDS.const, "") : requirements[i];
+      requirements[i] = requirements[i].includes(VAR_KEY_WORDS.var) ? requirements[i].replace(VAR_KEY_WORDS.var, "") : requirements[i];
+      requirements[i] = requirements[i].includes(VAR_KEY_WORDS.let) ? requirements[i].replace(VAR_KEY_WORDS.let, "") : requirements[i];
       requirements[i] = requirements[i].replace(new RegExp(commonJS(dependencies[i]), "gm"), ""); // need to replace based on dep's resolving alg
     }
 
