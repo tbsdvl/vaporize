@@ -5,7 +5,7 @@
  */
 export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
   if (hasKeyWord) {
-    return String.raw`[A-Za-z0-9]*=require\(["']${dep}["']\)`;
+    return String.raw`(?<=const|let|var)[A-Za-z0-9]*=require\(["']${dep}["']\)`;
   }
   return String.raw`=require\(["']${dep}["']\)`;
 };
