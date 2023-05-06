@@ -1,6 +1,7 @@
 /**
  * Returns a regex template for commonJS require statement syntax as a raw string.
  * @param {string} dep The name of the dependency.
+ * @param {boolean} hasKeyWord A value indicating whether or not the dependency string contains a variable keyword.
  * @returns The regex for the dependency's commonJS require statement.
  */
 export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
@@ -10,10 +11,11 @@ export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
 /**
  * Returns a regex template for ESM imports syntax as a raw string.
  * @param {string} imp The name of the import.
+ * @param {boolean} hasImport A value indicating whether or not the import string contains the "import" keyword.
  * @returns the regex for the ESM import.
  */
-export const esm = (imp: string): string => {
-  return String.raw`(?<=import)[A-Za-z0-9]from["']${imp}["']`;
+export const esm = (imp: string, hasImport: boolean = false): string => {
+  return hasImport ? String.raw`(?<=import)[A-Za-z0-9]*from["']${imp}["']` : String.raw`from["']${imp}["']`;
 };
 
 /**
