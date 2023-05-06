@@ -32,12 +32,12 @@ const getCJSVariableNames = (requirements: string[], dependencies: string[]): st
     return requirements;
 }
 
-const getESMVariableNames = (requirements: string[], dependencies: string[]): string[] => {
-  for (let i = 0; i < requirements.length; i++) {
-    requirements[i] = requirements[i].replace(new RegExp(esm(dependencies[i]), "gm"), "");
+const getESMVariableNames = (imports: string[], importArr: string[]): string[] => {
+  for (let i = 0; i < imports.length; i++) {
+    imports[i] = imports[i].replace(new RegExp(esm(importArr[i]), "gm"), "");
   }
 
-  return requirements;
+  return imports;
 }
 
 describe("regex", () => {
@@ -138,9 +138,26 @@ describe("regex", () => {
     import fs from "node:fs";
     import express from 'express';
     `;
-    const requirements: string[] = getImports(importArr, depString.replace(/\s/g, ""));
-    expect(requirements.length).toBeGreaterThan(0);
-    expect(requirements[0]).toBe(`fsfrom"node:fs"`);
-    expect(requirements[1]).toBe(`expressfrom'express'`);
+    const imports: string[] = getImports(importArr, depString.replace(/\s/g, ""));
+    expect(imports.length).toBeGreaterThan(0);
+    expect(imports[0]).toBe(`fsfrom"node:fs"`);
+    expect(imports[1]).toBe(`expressfrom'express'`);
+  });
+
+  it("should find matches and variable names for the modules using esm imports", () => {
+    const importArr = ["node:fs", "express", "dotenv"];
+    const depString = `
+    import fs from "node:fs";
+    import express from 'express';
+    `;
+    const imports: string[] = getImports(importArr, depString.replace(/\s/g, ""));
+    expect(imports.length).toBeGreaterThan(0);
+    expect(imports[0]).toBe(`fsfrom"node:fs"`);
+    expect(imports[1]).toBe(`expressfrom'express'`);
+
+    const variableNames: string[] = getESMVariableNames(imports, importArr);
+    expect(variableNames.length).toBeGreaterThan(1);
+    expect(variableNames[0]).toBe("fs");
+    expect(variableNames[1]).toBe("express");
   });
 });
