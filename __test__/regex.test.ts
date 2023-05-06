@@ -107,4 +107,8 @@ describe("regex", () => {
     expect(variableNames[3]).toBe("me");
     expect(variableNames[4]).toBe("somePkg");
   });
+
+  it("should find matches for the modules using esm imports", () => {
+
+  });
 });
