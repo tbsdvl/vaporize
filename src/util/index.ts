@@ -1,4 +1,4 @@
-import { commonJS } from "./dep-regex/index.ts";
+import { commonJS } from "./syntax-regex/index.ts";
 
 export {
     commonJS,
