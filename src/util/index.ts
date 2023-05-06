@@ -1,5 +1,6 @@
-import { commonJS } from "./syntax-regex/index.ts";
+import { commonJS, esm } from "./syntax-regex/index.ts";
 
 export {
     commonJS,
+    esm,
 }

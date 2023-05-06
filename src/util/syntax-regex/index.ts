@@ -9,11 +9,11 @@ export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
 
 /**
  * Returns a regex template for ESM imports syntax as a raw string.
- * @param {string} import The name of the import.
+ * @param {string} imp The name of the import.
  * @returns the regex for the ESM import.
  */
-export const esm = (dep: string): string => {
-  return String.raw``;
+export const esm = (imp: string): string => {
+  return String.raw`(?<=import)[A-Za-z0-9]from["']${imp}["']`;
 };
 
 /**
