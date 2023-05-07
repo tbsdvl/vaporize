@@ -18,6 +18,46 @@ export const esm = (imp: string, hasImport: boolean = false): string => {
   return hasImport ? String.raw`(?<=import)[A-Za-z0-9]*from["']${imp}["']` : String.raw`from["']${imp}["']`;
 };
 
+const getDependencyMatch = (dependency: string, dependencyString: string): string => {
+    const cJSRegExp: RegExp = new RegExp(commonJS(dependency, true), "gm");
+    const cJSMatches: RegExpExecArray | null = cJSRegExp.exec(dependencyString);
+    return cJSMatches?.length === 1 ? cJSMatches[0] : "";
+}
+
+const getImportMatch = (imp: string, dependencyString: string): string => {
+    const esmRegExp: RegExp = new RegExp(esm(imp, true), "gm");
+    const esmMatches: RegExpExecArray | null = esmRegExp.exec(dependencyString);
+    return esmMatches?.length === 1 ? esmMatches[0] : "";
+}
+
+export const getRequirements = (dependencies: string[], dependencyString: string): string[] => {
+    return dependencies.map((dependency: string) => {
+        return getDependencyMatch(dependency, dependencyString);
+    }).filter(x => x);
+}
+
+export const getImports = (imps: string[], dependencyString: string): string[] => {
+    return imps.map((imp: string) => {
+        return getImportMatch(imp, dependencyString);
+    }).filter(x => x);
+}
+
+export const getCJSVariableNames = (requirements: string[], dependencies: string[]): string[] => {
+    for (let i = 0; i < requirements.length; i++) {
+        requirements[i] = requirements[i].replace(new RegExp(commonJS(dependencies[i]), "gm"), "");
+    }
+
+    return requirements;
+}
+
+export const getESMVariableNames = (imports: string[], importArr: string[]): string[] => {
+    for (let i = 0; i < imports.length; i++) {
+        imports[i] = imports[i].replace(new RegExp(esm(importArr[i]), "gm"), "");
+    }
+
+    return imports;
+}
+
 /**
  * need to make functions for regular expressions which check for the following syntaxes:
  * commonJS named dependency i.e. const { name1, name2 } = require("some-package")

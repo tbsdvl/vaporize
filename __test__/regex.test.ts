@@ -1,44 +1,11 @@
-import { commonJS, esm } from "../src/util";
-
-const getDependencyMatch = (dependency: string, dependencyString: string): string => {
-  const cJSRegExp: RegExp = new RegExp(commonJS(dependency, true), "gm");
-  const cJSMatches: RegExpExecArray | null = cJSRegExp.exec(dependencyString);
-  return cJSMatches?.length === 1 ? cJSMatches[0] : "";
-}
-
-const getImportMatch = (imp: string, dependencyString: string): string => {
-  const esmRegExp: RegExp = new RegExp(esm(imp, true), "gm");
-  const esmMatches: RegExpExecArray | null = esmRegExp.exec(dependencyString);
-  return esmMatches?.length === 1 ? esmMatches[0] : "";
-}
-
-const getRequirements = (dependencies: string[], dependencyString: string): string[] => {
-    return dependencies.map((dependency: string) => {
-      return getDependencyMatch(dependency, dependencyString);
-    }).filter(x => x);
-}
-
-const getImports = (imps: string[], dependencyString: string): string[] => {
-  return imps.map((imp: string) => {
-    return getImportMatch(imp, dependencyString);
-  }).filter(x => x);
-}
-
-const getCJSVariableNames = (requirements: string[], dependencies: string[]): string[] => {
-    for (let i = 0; i < requirements.length; i++) {
-      requirements[i] = requirements[i].replace(new RegExp(commonJS(dependencies[i]), "gm"), "");
-    }
-
-    return requirements;
-}
-
-const getESMVariableNames = (imports: string[], importArr: string[]): string[] => {
-  for (let i = 0; i < imports.length; i++) {
-    imports[i] = imports[i].replace(new RegExp(esm(importArr[i]), "gm"), "");
-  }
-
-  return imports;
-}
+import { 
+  commonJS, 
+  esm,
+  getRequirements,
+  getImports,
+  getCJSVariableNames,
+  getESMVariableNames
+ } from "../src/util";
 
 describe("regex", () => {
   it("should find the require statement of the CommonJS dependency in the string", () => {
