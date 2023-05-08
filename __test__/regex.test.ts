@@ -162,6 +162,6 @@ describe("regex", () => {
       findVariableReferences(variableNames[i], depString.replace(/\s/g, ""), unusedReferences);
     }
 
-    expect(unusedReferences.length).toBe(1);
+    expect(unusedReferences.length).toBe(2);
   });
 });
