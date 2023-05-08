@@ -19,7 +19,7 @@ export const esm = (imp: string, hasImport: boolean = false): string => {
 };
 
 const variableReference = (variableName: string): string => {
-    return String.raw`[^"'\`]${variableName}[^"'\`]`;
+    return String.raw`(?<!"|'|\`)${variableName}(?!"|'|\`)`;
 };
 
 const getDependencyMatch = (dependency: string, dependencyString: string): string => {
@@ -63,7 +63,7 @@ export const getESMVariableNames = (imports: string[], importArr: string[]): str
 }
 
 export const findVariableReferences = (variableName: string, fileString: string, unusedReferences: string[]): void => {
-    const matches: RegExpMatchArray[] = Array.from(fileString.matchAll(new RegExp(String.raw`(?<!"|'|\`)${variableName}(?!"|'|\`)`, "gm")));
+    const matches: RegExpMatchArray[] = Array.from(fileString.matchAll(new RegExp(variableReference(variableName), "gm")));
     if (matches?.length < 2) {
         unusedReferences.push(variableName);
     }
