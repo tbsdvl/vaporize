@@ -141,7 +141,9 @@ describe("regex", () => {
     const myString = 'somePkg   is in this string';
     me();
     `;
-    const requirements: string[] = getRequirements(depArr, depString.replace(/\s/g, ""));
+
+    const noWhiteSpace = depString.replace(/\s/g, "");
+    const requirements: string[] = getRequirements(depArr, noWhiteSpace);
     expect(requirements.length).toBeGreaterThan(0);
     expect(requirements[0]).toBe("myApp=require('express')");
     expect(requirements[1]).toBe(`sameLine=require("sameLine")`);
@@ -159,7 +161,7 @@ describe("regex", () => {
 
     const unusedReferences: string[] = [];
     for (let i = 0; i < variableNames.length; i++) {
-      findVariableReferences(variableNames[i], depString.replace(/\s/g, ""), unusedReferences);
+      findVariableReferences(variableNames[i], noWhiteSpace, unusedReferences);
     }
 
     expect(unusedReferences.length).toBe(2);
