@@ -18,6 +18,10 @@ export const esm = (imp: string, hasImport: boolean = false): string => {
   return hasImport ? String.raw`(?<=import)[A-Za-z0-9]*from["']${imp}["']` : String.raw`from["']${imp}["']`;
 };
 
+const variableReference = (variableName: string): string => {
+    return String.raw`[^"'\`]${variableName}[^"'\`]`;
+};
+
 const getDependencyMatch = (dependency: string, dependencyString: string): string => {
     const cJSRegExp: RegExp = new RegExp(commonJS(dependency, true), "gm");
     const cJSMatches: RegExpExecArray | null = cJSRegExp.exec(dependencyString);
@@ -56,6 +60,13 @@ export const getESMVariableNames = (imports: string[], importArr: string[]): str
     }
 
     return imports;
+}
+
+export const findVariableReferences = (variableName: string, fileString: string, unusedReferences: string[]): void => {
+    const matches: RegExpMatchArray[] = Array.from(fileString.matchAll(new RegExp(String.raw`(?<!"|'|\`)${variableName}(?!"|'|\`)`, "gm")));
+    if (matches?.length < 2) {
+        unusedReferences.push(variableName);
+    }
 }
 
 /**

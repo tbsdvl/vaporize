@@ -4,7 +4,8 @@ import {
     getRequirements,
     getImports,
     getCJSVariableNames,
-    getESMVariableNames
+    getESMVariableNames,
+    findVariableReferences
 } from "./syntax-regex/index.ts";
 import { getFileExtension } from "./extension/index.ts";
 
@@ -16,4 +17,5 @@ export {
     getCJSVariableNames,
     getESMVariableNames,
     getFileExtension,
+    findVariableReferences,
 }

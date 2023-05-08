@@ -1,10 +1,9 @@
-import { 
-  commonJS, 
-  esm,
+import {
   getRequirements,
   getImports,
   getCJSVariableNames,
-  getESMVariableNames
+  getESMVariableNames,
+  findVariableReferences,
  } from "../src/util";
 
 describe("regex", () => {
@@ -126,5 +125,43 @@ describe("regex", () => {
     expect(variableNames.length).toBeGreaterThan(1);
     expect(variableNames[0]).toBe("fs");
     expect(variableNames[1]).toBe("express");
+  });
+
+  it("should find the references to the unused package", () => {
+    const depArr = ["express", "sameLine", "axios", "saysomething", "apackage", "dotenv"];
+    const depString = `
+    const myApp = require('express'); var sameLine = require("sameLine");
+    const http = require("axios");
+    let me = require("saysomething")
+    var somePkg = require('apackage');
+
+    myApp.listen();
+    http.listen();
+
+    const myString = 'somePkg   is in this string';
+    me();
+    `;
+    const requirements: string[] = getRequirements(depArr, depString.replace(/\s/g, ""));
+    expect(requirements.length).toBeGreaterThan(0);
+    expect(requirements[0]).toBe("myApp=require('express')");
+    expect(requirements[1]).toBe(`sameLine=require("sameLine")`);
+    expect(requirements[2]).toBe(`http=require("axios")`);
+    expect(requirements[3]).toBe(`me=require("saysomething")`);
+    expect(requirements[4]).toBe(`somePkg=require('apackage')`);
+
+    const variableNames: string[] = getCJSVariableNames(requirements, depArr);
+    expect(variableNames.length).toBeGreaterThan(1);
+    expect(variableNames[0]).toBe("myApp");
+    expect(variableNames[1]).toBe("sameLine");
+    expect(variableNames[2]).toBe("http");
+    expect(variableNames[3]).toBe("me");
+    expect(variableNames[4]).toBe("somePkg");
+
+    const unusedReferences: string[] = [];
+    for (let i = 0; i < variableNames.length; i++) {
+      findVariableReferences(variableNames[i], depString.replace(/\s/g, ""), unusedReferences);
+    }
+
+    expect(unusedReferences.length).toBe(1);
   });
 });
