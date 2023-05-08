@@ -4,7 +4,7 @@ import {
   getCJSVariableNames,
   getESMVariableNames,
   findVariableReferences,
- } from "../src/util";
+} from "../src/util";
 
 describe("regex", () => {
   it("should find the require statement of the CommonJS dependency in the string", () => {
