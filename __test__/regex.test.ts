@@ -167,7 +167,7 @@ describe("regex", () => {
     expect(unusedReferences.length).toBe(2);
 
     for (let i = 0; i < unusedReferences.length; i++) {
-      depString = depString.replace(new RegExp(String.raw`(?<=const|let|var)[/\s/]*${unusedReferences[i]}[/\s/]*=[/\s/]*require\(["'][A-Za-z0-9]*["']\)[/\s/\;]*`, "gm"), "");
+      depString = depString.replace(new RegExp(String.raw`(?<=const|let|var)[/\s/]*${unusedReferences[i]}[/\s/]*=[/\s/]*require\(["'][A-Za-z0-9\-]*["']\)[/\s/\;]*`, "gm"), "");
     }
 
     expect(depString.includes(`var sameLine = require("sameLine")`)).toBeFalsy();
