@@ -129,7 +129,7 @@ describe("regex", () => {
 
   it("should find the references to the unused package", () => {
     const depArr = ["express", "sameLine", "axios", "saysomething", "apackage", "dotenv"];
-    const depString = `
+    let depString = `
     const myApp = require('express'); var sameLine = require("sameLine");
     const http = require("axios");
     let me = require("saysomething")
@@ -165,5 +165,12 @@ describe("regex", () => {
     }
 
     expect(unusedReferences.length).toBe(2);
+
+    for (let i = 0; i < unusedReferences.length; i++) {
+      depString = depString.replace(new RegExp(String.raw`(?<=const|let|var)[/\s/]*${unusedReferences[i]}[/\s/]*=[/\s/]*require\(["'][A-Za-z0-9]*["']\)[/\s/\;]*`, "gm"), "");
+    }
+
+    expect(depString.includes(`var sameLine = require("sameLine")`)).toBeFalsy();
+    expect(depString.includes(`var somePkg = require('apackage')`)).toBeFalsy();
   });
 });
