@@ -133,7 +133,7 @@ describe("regex", () => {
     const myApp = require('express'); var sameLine = require("sameLine");
     const http = require("axios");
     let me = require("saysomething")
-    var somePkg = require('apackage');
+    var somePkg = require('apackage')
 
     myApp.listen();
     http.listen();
