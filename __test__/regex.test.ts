@@ -128,8 +128,9 @@ describe("regex", () => {
   });
 
   it("should find the references to the unused package", () => {
-    const depArr = ["express", "sameLine", "axios", "saysomething", "apackage", "dotenv"];
+    const depArr = ["new-dep", "express", "sameLine", "axios", "saysomething", "apackage", "dotenv"];
     let depString = `
+    const remove = require("new-dep")
     const myApp = require('express'); var sameLine = require("sameLine");
     const http = require("axios");
     let me = require("saysomething")
@@ -145,31 +146,33 @@ describe("regex", () => {
     const noWhiteSpace = depString.replace(/\s/g, "");
     const requirements: string[] = getRequirements(depArr, noWhiteSpace);
     expect(requirements.length).toBeGreaterThan(0);
-    expect(requirements[0]).toBe("myApp=require('express')");
-    expect(requirements[1]).toBe(`sameLine=require("sameLine")`);
-    expect(requirements[2]).toBe(`http=require("axios")`);
-    expect(requirements[3]).toBe(`me=require("saysomething")`);
-    expect(requirements[4]).toBe(`somePkg=require('apackage')`);
+    expect(requirements[0]).toBe(`remove=require("new-dep")`);
+    expect(requirements[1]).toBe("myApp=require('express')");
+    expect(requirements[2]).toBe(`sameLine=require("sameLine")`);
+    expect(requirements[3]).toBe(`http=require("axios")`);
+    expect(requirements[4]).toBe(`me=require("saysomething")`);
+    expect(requirements[5]).toBe(`somePkg=require('apackage')`);
 
     const variableNames: string[] = getCJSVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
-    expect(variableNames[0]).toBe("myApp");
-    expect(variableNames[1]).toBe("sameLine");
-    expect(variableNames[2]).toBe("http");
-    expect(variableNames[3]).toBe("me");
-    expect(variableNames[4]).toBe("somePkg");
+    expect(variableNames[0]).toBe("remove");
+    expect(variableNames[1]).toBe("myApp");
+    expect(variableNames[2]).toBe("sameLine");
+    expect(variableNames[3]).toBe("http");
+    expect(variableNames[4]).toBe("me");
+    expect(variableNames[5]).toBe("somePkg");
 
     const unusedReferences: string[] = [];
     for (let i = 0; i < variableNames.length; i++) {
       findVariableReferences(variableNames[i], noWhiteSpace, unusedReferences);
     }
 
-    expect(unusedReferences.length).toBe(2);
-
+    expect(unusedReferences.length).toBe(3);
     for (let i = 0; i < unusedReferences.length; i++) {
       depString = depString.replace(new RegExp(String.raw`(?<=const|let|var)[/\s/]*${unusedReferences[i]}[/\s/]*=[/\s/]*require\(["'][A-Za-z0-9\-]*["']\)[/\s/\;]*`, "gm"), "");
     }
 
+    expect(depString.includes(`const remove = require("new-dep")`)).toBeFalsy();
     expect(depString.includes(`var sameLine = require("sameLine")`)).toBeFalsy();
     expect(depString.includes(`var somePkg = require('apackage')`)).toBeFalsy();
   });
