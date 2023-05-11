@@ -22,6 +22,7 @@ const variableReference = (variableName: string): string => {
     return String.raw`(?<!"|'|\`)${variableName}(?!"|'|\`)`;
 };
 
+/* MAYBE REFACTOR THESE 2 FUNCTIONS INTO 1 W/ PARAM THAT WILL TELL FUNC TO USE CORRECT TEMPLATE */
 const getDependencyMatch = (dependency: string, dependencyString: string): string => {
     const cJSRegExp: RegExp = new RegExp(commonJS(dependency, true), "gm");
     const cJSMatches: RegExpExecArray | null = cJSRegExp.exec(dependencyString);

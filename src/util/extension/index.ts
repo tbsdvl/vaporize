@@ -5,6 +5,6 @@ import path from "path";
  * @param {string} fileName The file name.
  * @returns {string} The file's extension.
  */
-export const getFileExtension = (fileName: string) => {
+export const getFileExtension = (fileName: string): string => {
     return path.extname(fileName);
 }

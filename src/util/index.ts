@@ -1,5 +1,5 @@
-import { 
-    commonJS, 
+import {
+    commonJS,
     esm,
     getRequirements,
     getImports,
