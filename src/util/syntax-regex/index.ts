@@ -18,8 +18,8 @@ export const esm = (imp: string, hasImport: boolean = false): string => {
   return hasImport ? String.raw`(?<=import)[A-Za-z0-9]*from["']${imp}["']` : String.raw`from["']${imp}["']`;
 };
 
-const getDependencyMatch = (dependency: string, dependencyString: string, isModule: boolean = false): string => {
-    const depRegExp: RegExp = new RegExp(isModule ? esm(dependency, true) : commonJS(dependency, true), "gm");
+const getDependencyMatch = (dependency: string, dependencyString: string, isModuleType: boolean = false): string => {
+    const depRegExp: RegExp = new RegExp(isModuleType ? esm(dependency, true) : commonJS(dependency, true), "gm");
     const depMatches: RegExpExecArray | null = depRegExp.exec(dependencyString);
     return depMatches?.length === 1 ? depMatches[0] : "";
 }
@@ -32,10 +32,10 @@ export const getImports = (imps: string[], dependencyString: string): string[] =
     return imps.map((imp: string) => getDependencyMatch(imp, dependencyString, true)).filter(x => x);
 }
 
-export const getVariableNames = (requirements: string[], dependencies: string[], isModule: boolean = false): string[] => {
+export const getVariableNames = (requirements: string[], dependencies: string[], isModuleType: boolean = false): string[] => {
     const variableNames: string[] = [];
     for (let i = 0; i < requirements.length; i++) {
-        variableNames.push(requirements[i].replace(new RegExp(isModule ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), ""));
+        variableNames.push(requirements[i].replace(new RegExp(isModuleType ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), ""));
     }
 
     return variableNames;
