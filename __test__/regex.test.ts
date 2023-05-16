@@ -1,8 +1,7 @@
 import {
   getRequirements,
   getImports,
-  getCJSVariableNames,
-  getESMVariableNames,
+  getVariableNames,
   findVariableReferences,
 } from "../src/util";
 
@@ -34,7 +33,7 @@ describe("regex", () => {
     expect(requirements.length).toBeGreaterThan(0);
     expect(requirements[0]).toBe("express=require('express')");
 
-    const variableNames: string[] = getCJSVariableNames(requirements, depArr);
+    const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBe(1);
     expect(variableNames[0]).toBe("express");
   });
@@ -50,7 +49,7 @@ describe("regex", () => {
     expect(requirements[0]).toBe("express=require('express')");
     expect(requirements[1]).toBe(`axios=require("axios")`);
 
-    const variableNames: string[] = getCJSVariableNames(requirements, depArr);
+    const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
     expect(variableNames[0]).toBe("express");
     expect(variableNames[1]).toBe("axios");
@@ -67,7 +66,7 @@ describe("regex", () => {
     expect(requirements[0]).toBe("myApp=require('express')");
     expect(requirements[1]).toBe(`http=require("axios")`);
 
-    const variableNames: string[] = getCJSVariableNames(requirements, depArr);
+    const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
     expect(variableNames[0]).toBe("myApp");
     expect(variableNames[1]).toBe("http");
@@ -89,7 +88,7 @@ describe("regex", () => {
     expect(requirements[3]).toBe(`me=require("saysomething")`);
     expect(requirements[4]).toBe(`somePkg=require('apackage')`);
 
-    const variableNames: string[] = getCJSVariableNames(requirements, depArr);
+    const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
     expect(variableNames[0]).toBe("myApp");
     expect(variableNames[1]).toBe("sameLine");
@@ -121,7 +120,7 @@ describe("regex", () => {
     expect(imports[0]).toBe(`fsfrom"node:fs"`);
     expect(imports[1]).toBe(`expressfrom'express'`);
 
-    const variableNames: string[] = getESMVariableNames(imports, importArr);
+    const variableNames: string[] = getVariableNames(imports, importArr, true);
     expect(variableNames.length).toBeGreaterThan(1);
     expect(variableNames[0]).toBe("fs");
     expect(variableNames[1]).toBe("express");
@@ -154,7 +153,7 @@ describe("regex", () => {
       `somePkg=require('apackage')`,
     ]);
 
-    const variableNames: string[] = getCJSVariableNames(requirements, depArr);
+    const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
     expect(variableNames[0]).toBe("remove");
     expect(variableNames[1]).toBe("myApp");

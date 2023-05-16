@@ -3,8 +3,7 @@ import {
     esm,
     getRequirements,
     getImports,
-    getCJSVariableNames,
-    getESMVariableNames,
+    getVariableNames,
     findVariableReferences
 } from "./syntax-regex/index.ts";
 import { getFileExtension } from "./extension/index.ts";
@@ -14,8 +13,7 @@ export {
     esm,
     getRequirements,
     getImports,
-    getCJSVariableNames,
-    getESMVariableNames,
+    getVariableNames,
     getFileExtension,
     findVariableReferences,
 }
