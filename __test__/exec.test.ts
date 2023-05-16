@@ -12,7 +12,7 @@ const executeFilePromise = async (fileName: string): Promise<boolean | ExecExcep
             }
 
             if (stderr) {
-                console.log(stderr);
+                console.error(stderr);
             }
 
             resolve(true);
