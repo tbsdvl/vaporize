@@ -33,12 +33,12 @@ export const getImports = (imps: string[], dependencyString: string): string[] =
 }
 
 export const getVariableNames = (requirements: string[], dependencies: string[], isModule: boolean = false): string[] => {
-    const cjsVariableNames: string[] = [];
+    const variableNames: string[] = [];
     for (let i = 0; i < requirements.length; i++) {
-        cjsVariableNames.push(requirements[i].replace(new RegExp(isModule ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), ""));
+        variableNames.push(requirements[i].replace(new RegExp(isModule ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), ""));
     }
 
-    return cjsVariableNames;
+    return variableNames;
 }
 
 export const getESMVariableNames = (imports: string[], importArr: string[]): string[] => {
