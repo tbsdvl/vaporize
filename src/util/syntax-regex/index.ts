@@ -18,10 +18,6 @@ export const esm = (imp: string, hasImport: boolean = false): string => {
   return hasImport ? String.raw`(?<=import)[A-Za-z0-9]*from["']${imp}["']` : String.raw`from["']${imp}["']`;
 };
 
-const variableReference = (variableName: string): string => {
-    return String.raw`(?<!"|'|\`)${variableName}(?!"|'|\`)`;
-};
-
 /* MAYBE REFACTOR THESE 2 FUNCTIONS INTO 1 W/ PARAM THAT WILL TELL FUNC TO USE CORRECT TEMPLATE */
 const getDependencyMatch = (dependency: string, dependencyString: string): string => {
     const cJSRegExp: RegExp = new RegExp(commonJS(dependency, true), "gm");
@@ -36,36 +32,33 @@ const getImportMatch = (imp: string, dependencyString: string): string => {
 }
 
 export const getRequirements = (dependencies: string[], dependencyString: string): string[] => {
-    return dependencies.map((dependency: string) => {
-        return getDependencyMatch(dependency, dependencyString);
-    }).filter(x => x);
+    return dependencies.map((dependency: string) => getDependencyMatch(dependency, dependencyString)).filter(x => x);
 }
 
 export const getImports = (imps: string[], dependencyString: string): string[] => {
-    return imps.map((imp: string) => {
-        return getImportMatch(imp, dependencyString);
-    }).filter(x => x);
+    return imps.map((imp: string) => getImportMatch(imp, dependencyString)).filter(x => x);
 }
 
 export const getCJSVariableNames = (requirements: string[], dependencies: string[]): string[] => {
+    const cjsVariableNames: string[] = [];
     for (let i = 0; i < requirements.length; i++) {
-        requirements[i] = requirements[i].replace(new RegExp(commonJS(dependencies[i]), "gm"), "");
+        cjsVariableNames.push(requirements[i].replace(new RegExp(commonJS(dependencies[i]), "gm"), ""));
     }
 
-    return requirements;
+    return cjsVariableNames;
 }
 
 export const getESMVariableNames = (imports: string[], importArr: string[]): string[] => {
+    const esmVariableNames: string[] = [];
     for (let i = 0; i < imports.length; i++) {
-        imports[i] = imports[i].replace(new RegExp(esm(importArr[i]), "gm"), "");
+        esmVariableNames.push(imports[i].replace(new RegExp(esm(importArr[i]), "gm"), ""));
     }
 
-    return imports;
+    return esmVariableNames;
 }
 
 export const findVariableReferences = (variableName: string, fileString: string, unusedReferences: string[]): void => {
-    const matches: RegExpMatchArray[] = Array.from(fileString.matchAll(new RegExp(variableReference(variableName), "gm")));
-    if (matches?.length < 2) {
+    if (fileString.match(new RegExp(String.raw`(?<!"|'|\`)${variableName}(?!"|'|\`)`, "gm")).length < 2) {
         unusedReferences.push(variableName);
     }
 }

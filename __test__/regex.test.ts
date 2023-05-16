@@ -145,13 +145,14 @@ describe("regex", () => {
 
     const noWhiteSpace = depString.replace(/\s/g, "");
     const requirements: string[] = getRequirements(depArr, noWhiteSpace);
-    expect(requirements.length).toBeGreaterThan(0);
-    expect(requirements[0]).toBe(`remove=require("new-dep")`);
-    expect(requirements[1]).toBe("myApp=require('express')");
-    expect(requirements[2]).toBe(`sameLine=require("sameLine")`);
-    expect(requirements[3]).toBe(`http=require("axios")`);
-    expect(requirements[4]).toBe(`me=require("saysomething")`);
-    expect(requirements[5]).toBe(`somePkg=require('apackage')`);
+    expect(requirements).toEqual([
+      `remove=require("new-dep")`,
+      `myApp=require('express')`,
+      `sameLine=require("sameLine")`,
+      `http=require("axios")`,
+      `me=require("saysomething")`,
+      `somePkg=require('apackage')`,
+    ]);
 
     const variableNames: string[] = getCJSVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
@@ -164,14 +165,12 @@ describe("regex", () => {
 
     const unusedReferences: string[] = [];
     for (let i = 0; i < variableNames.length; i++) {
-      findVariableReferences(variableNames[i], noWhiteSpace, unusedReferences);
+      const variableName = variableNames[i];
+      findVariableReferences(variableName, noWhiteSpace, unusedReferences);
+      depString = depString.replace(new RegExp(String.raw`(?<=const|let|var)[/\s/]*${variableName}[/\s/]*=[/\s/]*require\(["'][A-Za-z0-9\-]*["']\)[/\s/\;]*`, "gm"), "");
     }
 
     expect(unusedReferences.length).toBe(3);
-    for (let i = 0; i < unusedReferences.length; i++) {
-      depString = depString.replace(new RegExp(String.raw`(?<=const|let|var)[/\s/]*${unusedReferences[i]}[/\s/]*=[/\s/]*require\(["'][A-Za-z0-9\-]*["']\)[/\s/\;]*`, "gm"), "");
-    }
-
     expect(depString.includes(`const remove = require("new-dep")`)).toBeFalsy();
     expect(depString.includes(`var sameLine = require("sameLine")`)).toBeFalsy();
     expect(depString.includes(`var somePkg = require('apackage')`)).toBeFalsy();
