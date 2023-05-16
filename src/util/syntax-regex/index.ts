@@ -41,15 +41,6 @@ export const getVariableNames = (requirements: string[], dependencies: string[],
     return variableNames;
 }
 
-export const getESMVariableNames = (imports: string[], importArr: string[]): string[] => {
-    const esmVariableNames: string[] = [];
-    for (let i = 0; i < imports.length; i++) {
-        esmVariableNames.push(imports[i].replace(new RegExp(esm(importArr[i]), "gm"), ""));
-    }
-
-    return esmVariableNames;
-}
-
 export const findVariableReferences = (variableName: string, fileString: string, unusedReferences: string[]): void => {
     if (fileString.match(new RegExp(String.raw`(?<!"|'|\`)${variableName}(?!"|'|\`)`, "gm")).length < 2) {
         unusedReferences.push(variableName);
