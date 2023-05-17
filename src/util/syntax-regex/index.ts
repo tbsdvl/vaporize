@@ -20,8 +20,7 @@ export const esm = (imp: string, hasImport: boolean = false): string => {
 
 const getDependencyMatch = (dependency: string, dependencyString: string, isModuleType: boolean = false): string => {
     const depRegExp: RegExp = new RegExp(isModuleType ? esm(dependency, true) : commonJS(dependency, true), "gm");
-    const match: string | null = dependencyString.match(depRegExp)?.[0];
-    return match || "";
+    return dependencyString.match(depRegExp)?.[0] || "";
 }
 
 export const getRequirements = (dependencies: string[], dependencyString: string): string[] => {
