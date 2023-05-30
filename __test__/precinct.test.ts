@@ -1,4 +1,4 @@
-import { readFile } from "../src/util";
+import { readFile } from "../src/lib";
 import precinct from "precinct";
 
 describe("precinct", () => {

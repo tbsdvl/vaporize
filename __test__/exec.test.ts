@@ -1,4 +1,4 @@
-import { executeFilePromise } from "../src/util";
+import { executeFilePromise } from "../src/lib";
 
 describe("exec", () => {
     // Need to figure out the issue with ESM imports omitting the explicit file extension
