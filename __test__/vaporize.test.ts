@@ -7,4 +7,8 @@ describe('vaporize', () => {
         expect(fileString).toBeTruthy();
         console.log(fileString);
     });
+
+    it('should fail to retrieve the contents of the HTML file', async () => {
+        await expect(getFileString("../../__test__/testFiles/test.html")).rejects.toThrow(Error);
+    });
 });

@@ -6,7 +6,7 @@ import * as lib from "../lib/index.ts";
  * @param {string} filePath The path to the file.
  * @returns A void promise.
  */
-export const getFileString = async (filePath: string): Promise<Buffer | NodeJS.ErrnoException> => {
+export const getFileString = async (filePath: string): Promise<Buffer | NodeJS.ErrnoException | Error> => {
     if (Object.values(EXTENSION).includes(lib.getFileExtension(filePath))) {
         return await lib.readFile(new URL(filePath, import.meta.url));
     }
