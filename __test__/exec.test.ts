@@ -1,4 +1,4 @@
-import { ExecException, execFile, spawnSync } from "node:child_process";
+import { ExecException, execFile } from "node:child_process";
 
 const executeFilePromise = async (fileName: string): Promise<boolean | ExecException | string> => {
     return new Promise((resolve, reject) => {
