@@ -22,8 +22,7 @@ describe("regex", () => {
     `;
     const requirements: string[] = getRequirements(depArr, depString.replace(/\s/g, ""));
     expect(requirements.length).toBeGreaterThan(0);
-    expect(requirements[0]).toBe("express=require('express')");
-    expect(requirements[1]).toBe(`axios=require("axios")`);
+    expect(requirements).toEqual(["express=require('express')", `axios=require("axios")`]);
   });
 
   it("should find the variable name of the CommonJS dependency in the string", () => {
@@ -46,13 +45,11 @@ describe("regex", () => {
     `;
     const requirements: string[] = getRequirements(depArr, depString.replace(/\s/g, ""));
     expect(requirements.length).toBeGreaterThan(0);
-    expect(requirements[0]).toBe("express=require('express')");
-    expect(requirements[1]).toBe(`axios=require("axios")`);
+    expect(requirements).toEqual(["express=require('express')", `axios=require("axios")`]);
 
     const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
-    expect(variableNames[0]).toBe("express");
-    expect(variableNames[1]).toBe("axios");
+    expect(variableNames).toEqual(["express", "axios"]);
   });
 
   it("should find the unique variable names of multiple CommonJS dependencies in the string", () => {
@@ -63,13 +60,11 @@ describe("regex", () => {
     `;
     const requirements: string[] = getRequirements(depArr, depString.replace(/\s/g, ""));
     expect(requirements.length).toBeGreaterThan(0);
-    expect(requirements[0]).toBe("myApp=require('express')");
-    expect(requirements[1]).toBe(`http=require("axios")`);
+    expect(requirements).toEqual(["myApp=require('express')", `http=require("axios")`]);
 
     const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
-    expect(variableNames[0]).toBe("myApp");
-    expect(variableNames[1]).toBe("http");
+    expect(variableNames).toEqual(["myApp", "http"]);
   });
 
   it("should find the unique variable names of multiple CommonJS dependencies using different variable keywords in the string", () => {
@@ -82,19 +77,17 @@ describe("regex", () => {
     `;
     const requirements: string[] = getRequirements(depArr, depString.replace(/\s/g, ""));
     expect(requirements.length).toBeGreaterThan(0);
-    expect(requirements[0]).toBe("myApp=require('express')");
-    expect(requirements[1]).toBe(`sameLine=require("sameLine")`);
-    expect(requirements[2]).toBe(`http=require("axios")`);
-    expect(requirements[3]).toBe(`me=require("saysomething")`);
-    expect(requirements[4]).toBe(`somePkg=require('apackage')`);
+    expect(requirements).toEqual([
+      "myApp=require('express')",
+      `sameLine=require("sameLine")`,
+      `http=require("axios")`,
+      `me=require("saysomething")`,
+      `somePkg=require('apackage')`
+    ]);
 
     const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
-    expect(variableNames[0]).toBe("myApp");
-    expect(variableNames[1]).toBe("sameLine");
-    expect(variableNames[2]).toBe("http");
-    expect(variableNames[3]).toBe("me");
-    expect(variableNames[4]).toBe("somePkg");
+    expect(variableNames).toEqual(["myApp", "sameLine", "http", "me", "somePkg"]);
   });
 
   it("should find matches for the modules using esm imports", () => {
@@ -105,8 +98,7 @@ describe("regex", () => {
     `;
     const imports: string[] = getImports(importArr, depString.replace(/\s/g, ""));
     expect(imports.length).toBeGreaterThan(0);
-    expect(imports[0]).toBe(`fsfrom"node:fs"`);
-    expect(imports[1]).toBe(`expressfrom'express'`);
+    expect(imports).toEqual([`fsfrom"node:fs"`, `expressfrom'express'`]);
   });
 
   it("should find matches and variable names for the modules using esm imports", () => {
@@ -117,13 +109,11 @@ describe("regex", () => {
     `;
     const imports: string[] = getImports(importArr, depString.replace(/\s/g, ""));
     expect(imports.length).toBeGreaterThan(0);
-    expect(imports[0]).toBe(`fsfrom"node:fs"`);
-    expect(imports[1]).toBe(`expressfrom'express'`);
+    expect(imports).toEqual([`fsfrom"node:fs"`, `expressfrom'express'`]);
 
     const variableNames: string[] = getVariableNames(imports, importArr, true);
     expect(variableNames.length).toBeGreaterThan(1);
-    expect(variableNames[0]).toBe("fs");
-    expect(variableNames[1]).toBe("express");
+    expect(variableNames).toEqual(["fs", "express"]);
   });
 
   it("should find the references to the unused package", () => {
@@ -155,12 +145,7 @@ describe("regex", () => {
 
     const variableNames: string[] = getVariableNames(requirements, depArr);
     expect(variableNames.length).toBeGreaterThan(1);
-    expect(variableNames[0]).toBe("remove");
-    expect(variableNames[1]).toBe("myApp");
-    expect(variableNames[2]).toBe("sameLine");
-    expect(variableNames[3]).toBe("http");
-    expect(variableNames[4]).toBe("me");
-    expect(variableNames[5]).toBe("somePkg");
+    expect(variableNames).toEqual(["remove", "myApp", "sameLine", "http", "me", "somePkg"]);
 
     const unusedReferences: string[] = [];
     for (let i = 0; i < variableNames.length; i++) {
