@@ -34,8 +34,8 @@ export const vaporize = async (filePath: string) => {
 
     let importStatements: Array<string> = [];
     let variableNames: Array<string> = [];
-    const noWhiteSpace: string = fileData.file.replace(/\s/g, "");
     const unusedReferences: Array<string> = [];
+    const noWhiteSpace: string = fileData.file.replace(/\s/g, "");
     if (fileData.ext === EXTENSION.js && fileData.file.includes("import") || fileData.ext === EXTENSION.ts) {
         importStatements = lib.getImports(dependencies, noWhiteSpace);
         variableNames = lib.getVariableNames(importStatements, dependencies, true);
