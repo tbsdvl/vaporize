@@ -1,14 +1,16 @@
-import { getFileString } from "../src/vaporize";
+import { vaporize } from "../src/vaporize";
 
 describe('vaporize', () => {
 
-    it('should successfully retrieve the contents of a JavaScript file as a string', async () => {
-        const fileString = await getFileString("../../__test__/testFiles/index.js"); 
-        expect(fileString).toBeTruthy();
-        console.log(fileString);
+    it('should successfully identify a file\'s extension as a JavaScript file', async () => {
+        await expect(vaporize("../../__test__/testFiles/index.js")).resolves.not.toThrow();
     });
 
-    it('should fail to retrieve the contents of the HTML file', async () => {
-        await expect(getFileString("../../__test__/testFiles/test.html")).rejects.toThrow(Error);
+    it('should throw after checking a file\'s extension as an HTML file', async () => {
+        await expect(vaporize("../../__test__/testFiles/test.html")).rejects.toThrow(Error);
+    });
+
+    it('should identify the list of unused dependencies in a JavaScript file', async () => {
+        await expect(vaporize("../../__test__/testFiles/index.js")).resolves.toEqual('import example from "./example.js";\r\nexport default example;');
     });
 });
