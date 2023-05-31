@@ -42,7 +42,7 @@ export const vaporize = async (filePath: string) => {
         for (let i = 0; i < variableNames.length; i++) {
             const variableName = variableNames[i];
             lib.findVariableReferences(variableName, noWhiteSpace, unusedReferences);
-            fileData.file = fileData.file.replace(new RegExp(String.raw`import[/\s/]*fs[/\s/]*from[/\s/]*["'][A-Za-z0-9\-\:]*["'][/\s/\;]*`, "gm"), "");
+            fileData.file = fileData.file.replace(new RegExp(String.raw`import[/\s/]*${variableName}[/\s/]*from[/\s/]*["'][A-Za-z0-9\-\:]*["'][/\s/\;]*`, "gm"), "");
         }
     } else if (fileData.ext === EXTENSION.cjs || fileData.ext === EXTENSION.js) {
 
