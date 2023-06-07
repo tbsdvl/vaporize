@@ -1,9 +1,10 @@
 import { EXTENSION } from "../constants/index.ts";
 import * as lib from "../lib/index.ts";
 import precinct from "precinct";
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { randomUUID } from "node:crypto";
+import path from "node:path";
 
 /**
  * Gets the extension and contents of a file.
@@ -15,7 +16,7 @@ const getFileData = async (filePath: string): Promise<any> => {
     if (Object.values(EXTENSION).includes(fileExtension)) {
         return {
             ext: fileExtension,
-            file: (await lib.readFile(new URL(filePath, import.meta.url))).toString()
+            file: (await lib.readFile(filePath)).toString()
         };
     }
 
@@ -45,27 +46,26 @@ export const vaporize = async (filePath: string) => {
         for (let i = 0; i < variableNames.length; i++) {
             const variableName = variableNames[i];
             lib.findVariableReferences(variableName, noWhiteSpace, unusedReferences);
-            fileData.file = fileData.file.replace(new RegExp(String.raw`import[/\s/]*${variableName}[/\s/]*from[/\s/]*["'][A-Za-z0-9\-\:]*["'][/\s/\;]*`, "gm"), "");
+        }
+
+        // iterate over each unused reference & replace with empty string
+        for (let i = 0; i < unusedReferences.length; i++) {
+            fileData.file = fileData.file.replace(new RegExp(String.raw`import[/\s/]*${unusedReferences[i]}[/\s/]*from[/\s/]*["'][A-Za-z0-9\-\:]*["'][/\s/\;]*`, "gm"), "");
         }
     } else if (fileData.ext === EXTENSION.cjs || fileData.ext === EXTENSION.js) {
 
     }
 
-    // write sanitized code to a new temp file
-    const splitFilePath = filePath.split("/");
-    const temp = fileURLToPath(import.meta.url);
-    // const tempFilePath = `${fileURLToPath(pathToFileURL(filePath))}\\${randomUUID()}${fileData.ext}`.replace(`\\${splitFilePath[splitFilePath.length - 1]}`, "");
-    const tempFilePath = `${'C:\\Users\\TristonBurns\\myProjects\\vaporize\\src\\vaporize\\..\\..\\__test__\\testFiles\\'}${randomUUID()}${fileData.ext}`;
-    fs.writeFileSync(tempFilePath, fileData.file);
-
+    // This will only work for files within the vaporize directory.
+    // I need to figure out how I can read & write files from outside of the Vaporize project
+    const temp = path.resolve(filePath);
+    const targetDirectory = path.resolve(temp.replace(path.basename(temp), "").replace("/src", ""), path.dirname(filePath));
+    const tempFilePath = path.join(targetDirectory, randomUUID() + fileData.ext);
+    await fs.writeFile(tempFilePath, fileData.file);
     const readTempFileResult = await lib.executeFilePromise(tempFilePath);
 
     // delete the file
-    fs.unlink(tempFilePath, (err) => {
-        if (err) {
-            throw err;
-        }
-    });
+    await fs.unlink(tempFilePath);
     // run the code in the new temp file with executeFilePromise
     // log any errors
 }
