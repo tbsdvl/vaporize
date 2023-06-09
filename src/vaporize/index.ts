@@ -2,7 +2,6 @@ import { EXTENSION } from "../constants/index.ts";
 import * as lib from "../lib/index.ts";
 import precinct from "precinct";
 import fs from "node:fs/promises";
-import { fileURLToPath, pathToFileURL } from "node:url";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 

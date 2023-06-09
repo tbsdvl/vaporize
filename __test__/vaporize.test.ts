@@ -20,6 +20,6 @@ describe('vaporize', () => {
         // name the temp test file
         // use it to write to test file generated in function
         // delete the temp test file.
-        await expect(vaporize(fileURLToPath(pathToFileURL("../example.js")))).resolves.not.toThrow();
+        await expect(vaporize(fileURLToPath(pathToFileURL("../testRepo/example.js")))).resolves.not.toThrow();
     });
 });
