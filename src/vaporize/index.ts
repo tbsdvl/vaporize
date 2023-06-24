@@ -6,6 +6,18 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 
 /**
+ * The error list.
+ * @type {Array}
+ */
+const ERROR_LIST = [];
+
+/**
+ * The list of sanitized files.
+ * @type {Array<string>}
+ */
+const SANITIZED_FILES: Array<string> = [];
+
+/**
  * Gets the extension and contents of a file.
  * @param {string} filePath The path to the file.
  * @returns A promise including the file extension and the file's contents.
@@ -62,9 +74,10 @@ export const vaporize = async (filePath: string) => {
     const tempFilePath = path.join(targetDirectory, randomUUID() + fileData.ext);
     await fs.writeFile(tempFilePath, fileData.file);
     const readTempFileResult = await lib.executeFilePromise(tempFilePath);
+    if (typeof (readTempFileResult) !== "boolean" && typeof (readTempFileResult) !== "undefined") {
+        ERROR_LIST.push(readTempFileResult);
+    }
 
     // delete the file
     await fs.unlink(tempFilePath);
-    // run the code in the new temp file with executeFilePromise
-    // log any errors
 }

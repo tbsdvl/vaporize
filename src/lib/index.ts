@@ -1,6 +1,7 @@
 import { executeFilePromise } from "./exec/index.ts";
 import { readFile } from "./file/index.ts";
 import { getFileExtension } from "./extension/index.ts";
+import moduleType from "./pkg/index.ts";
 import {
     commonJS,
     esm,
@@ -19,5 +20,6 @@ export {
     getImports,
     getVariableNames,
     getFileExtension,
+    moduleType,
     findVariableReferences,
 }
