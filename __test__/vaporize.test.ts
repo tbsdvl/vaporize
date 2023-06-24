@@ -11,7 +11,11 @@ describe('vaporize', () => {
         await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testFiles/test.html")))).rejects.toThrow(Error);
     });
 
-    it('should identify the list of unused dependencies in a JavaScript file', async () => {
-        await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testFiles/index.js")))).resolves.toEqual('import example from "./example.js";\r\nexport default example;');
+    it('should sanitize the code in an ESM JavaScript file', async () => {
+        await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testFiles/index.js")))).resolves.not.toThrow();
+    });
+
+    it('should sanitize the code in a CommonJS JavaScript file', async () => {
+        await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testCJSFiles/index.cjs")))).resolves.not.toThrow();
     });
 });

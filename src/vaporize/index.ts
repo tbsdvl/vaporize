@@ -47,16 +47,21 @@ export const vaporize = async (filePath: string) => {
         return;
     }
 
-    let importStatements: Array<string> = [];
+    let dependencyStatements: Array<string> = [];
     let variableNames: Array<string> = [];
     const unusedReferences: Array<string> = [];
-    const noWhiteSpace: string = fileData.file.replace(/\s/g, "");
-    if (fileData.ext === EXTENSION.js && fileData.file.includes("import") || fileData.ext === EXTENSION.ts) {
-        importStatements = lib.getImports(dependencies, noWhiteSpace);
-        variableNames = lib.getVariableNames(importStatements, dependencies, true);
+    const codeWithoutWhiteSpace: string = fileData.file.replace(/\s/g, "");
+    if ((fileData.ext === EXTENSION.js && fileData.file.includes("import")) || fileData.ext === EXTENSION.ts) {
+        dependencyStatements = lib.getImports(dependencies, codeWithoutWhiteSpace);
+        variableNames = lib.getVariableNames(dependencyStatements, dependencies, true);
         for (let i = 0; i < variableNames.length; i++) {
             const variableName = variableNames[i];
-            lib.findVariableReferences(variableName, noWhiteSpace, unusedReferences);
+            lib.findVariableReferences(variableName, codeWithoutWhiteSpace, unusedReferences);
+        }
+
+        if (unusedReferences.length === 0) {
+            console.log("No unused dependencies found.");
+            return;
         }
 
         // iterate over each unused reference & replace with empty string
@@ -64,7 +69,22 @@ export const vaporize = async (filePath: string) => {
             fileData.file = fileData.file.replace(new RegExp(String.raw`import[/\s/]*${unusedReferences[i]}[/\s/]*from[/\s/]*["'][A-Za-z0-9\-\:]*["'][/\s/\;]*`, "gm"), "");
         }
     } else if (fileData.ext === EXTENSION.cjs || fileData.ext === EXTENSION.js) {
+        dependencyStatements = lib.getRequirements(dependencies, codeWithoutWhiteSpace);
+        variableNames = lib.getVariableNames(dependencyStatements, dependencies, false);
+        for (let i = 0; i < variableNames.length; i++) {
+            const variableName = variableNames[i];
+            lib.findVariableReferences(variableName, codeWithoutWhiteSpace, unusedReferences);
+        }
 
+        if (unusedReferences.length === 0) {
+            console.log("No unused dependencies found.");
+            return;
+        }
+        
+        // iterate over each unused reference & replace with empty string
+        for (let i = 0; i < unusedReferences.length; i++) {
+            fileData.file = fileData.file.replace(new RegExp(String.raw`(const|let|var)[/\s/]*${unusedReferences[i]}[/\s/]*=[/\s/]*require\(["'][A-Za-z0-9\-]*["']\)[/\s/\;]*`, "gm"), "");
+        }
     }
 
     // This will only work for files within the vaporize directory.
@@ -80,4 +100,9 @@ export const vaporize = async (filePath: string) => {
 
     // delete the file
     await fs.unlink(tempFilePath);
+
+    // replace the code in the file with the sanitized code if executing the code did not throw any errors
+    if (ERROR_LIST.length === 0) {
+        await fs.writeFile(filePath, fileData.file);
+    }
 }
