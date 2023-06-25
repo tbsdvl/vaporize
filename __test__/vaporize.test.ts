@@ -2,7 +2,6 @@ import { vaporize } from "../src/lib";
 import { pathToFileURL, fileURLToPath } from "node:url";
 
 describe('vaporize', () => {
-
     it('should successfully identify a file\'s extension as a JavaScript file', async () => {
         await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testFiles/index.js")))).resolves.not.toThrow();
     });
