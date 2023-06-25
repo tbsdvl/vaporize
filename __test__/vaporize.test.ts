@@ -17,4 +17,8 @@ describe('vaporize', () => {
     it('should sanitize the code in a CommonJS JavaScript file', async () => {
         await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testCJSFiles/index.cjs")))).resolves.not.toThrow();
     });
+
+    it('should sanitize the code in a CommonJS JavaScript file with a module path', async () => {
+        await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testCJSFiles/example2.cjs")))).resolves.not.toThrow();
+    });
 });

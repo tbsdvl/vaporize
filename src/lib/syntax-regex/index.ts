@@ -5,7 +5,10 @@
  * @returns The regex for the dependency's commonJS require statement.
  */
 export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
-  return hasKeyWord ? String.raw`(?<=const|let|var)[A-Za-z0-9]*=require\(["']${dep}["']\)` : String.raw`=require\(["']${dep}["']\)`;
+  // FIX THIS.
+  dep = dep.replace(/\./gm, "\\.");
+  dep = dep.replace(/\//gm, "\\/");
+  return hasKeyWord ? String.raw`(?<=const|let|var)[A-Za-z0-9]*=require\(["'.\/A-Za-z0-9]*${dep}["']\)` : String.raw`=require\(["'.\/A-Za-z0-9]*${dep}["']\)`;
 };
 
 /**
@@ -41,7 +44,7 @@ export const getVariableNames = (requirements: string[], dependencies: string[],
 }
 
 export const findVariableReferences = (variableName: string, fileString: string, unusedReferences: string[]): void => {
-    if (fileString.match(new RegExp(String.raw`(?<!"|'|\`)${variableName}(?!"|'|\`)`, "gm"))?.length < 2) {
+    if (fileString.match(new RegExp(String.raw`(?<!"|'|\`|\/|\.)${variableName}(?!"|'|\`|\/)`, "gm"))?.length < 2) {
         unusedReferences.push(variableName);
     }
 }
