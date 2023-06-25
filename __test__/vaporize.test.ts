@@ -23,6 +23,6 @@ describe('vaporize', () => {
     });
 
     it('should sanitize the code in an ESM JavaScript file with a module path', async () => {
-        await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testFiles/example2.cjs")))).resolves.not.toThrow();
+        await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testFiles/example2.js")))).resolves.not.toThrow();
     });
 });
