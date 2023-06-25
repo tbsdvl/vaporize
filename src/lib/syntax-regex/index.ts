@@ -5,7 +5,6 @@
  * @returns The regex for the dependency's commonJS require statement.
  */
 export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
-  // FIX THIS.
   dep = dep.replace(/\./gm, "\\.");
   dep = dep.replace(/\//gm, "\\/");
   return hasKeyWord ? String.raw`(?<=const|let|var)[A-Za-z0-9]*=require\(["'.\/A-Za-z0-9]*${dep}["']\)` : String.raw`=require\(["'.\/A-Za-z0-9]*${dep}["']\)`;
