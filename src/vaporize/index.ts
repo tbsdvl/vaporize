@@ -57,8 +57,8 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
 
     for (let i = 0; i < unusedReferences.length; i++) {
         const pattern = isEsm
-        ? String.raw`import[/\s/]*${unusedReferences[i]}[/\s/]*from[/\s/]*["'][A-Za-z0-9\-\:]*["'][/\s/\;]*`
-        : String.raw`(const|let|var)[\/\s\/]*${unusedReferences[i]}[\/\s\/]*=[\/\s\/]*require\(["'][A-Za-z0-9\-\/\.]*["']\)[\/\s\/\;]*`;
+        ? String.raw`import[/\s/]*${unusedReferences[i]}[\/\s\/]*from[\/\s\/]*["'][A-Za-z0-9\-\/\.\:]*["'][\/\s\/\;]*`
+        : String.raw`(const|let|var)[\/\s\/]*${unusedReferences[i]}[\/\s\/]*=[\/\s\/]*require\(["'][A-Za-z0-9\-\/\.\:]*["']\)[\/\s\/\;]*`;
         fileData.file = fileData.file.replace(new RegExp(pattern, "gm"), "");
     }
 
