@@ -13,8 +13,7 @@
         "esModuleInterop": true,
         "types": ["jest", "node", "@types/jest"],
         "outDir": "dist",
-        "noEmit": true,
-        "allowImportingTsExtensions": true,
+        "noEmit": false,
     },
     "ts-node": {
         "esm": true,

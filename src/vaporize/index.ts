@@ -1,5 +1,5 @@
-import { EXTENSION } from "../constants/index.ts";
-import * as lib from "../lib/index.ts";
+import { EXTENSION } from "../constants/index.js";
+import * as lib from "../lib/index.js";
 import precinct from "precinct";
 import fs from "node:fs/promises";
 import { randomUUID } from "node:crypto";

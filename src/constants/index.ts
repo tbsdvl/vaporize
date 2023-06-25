@@ -1,4 +1,4 @@
-import { EXTENSION } from "./extension.ts";
+import { EXTENSION } from "./extension.js";
 
 export {
     EXTENSION,

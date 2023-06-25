@@ -1,7 +1,7 @@
-import { executeFilePromise } from "./exec/index.ts";
-import { readFile } from "./file/index.ts";
-import { getFileExtension } from "./extension/index.ts";
-import moduleType from "./pkg/index.ts";
+import { executeFilePromise } from "./exec/index.js";
+import { readFile } from "./file/index.js";
+import { getFileExtension } from "./extension/index.js";
+import moduleType from "./pkg/index.js";
 import {
     commonJS,
     esm,
@@ -9,8 +9,8 @@ import {
     getImports,
     getVariableNames,
     findVariableReferences
-} from "./syntax-regex/index.ts";
-import { vaporize } from "../vaporize/index.ts";
+} from "./syntax-regex/index.js";
+import { vaporize } from "../vaporize/index.js";
 
 export {
     executeFilePromise,

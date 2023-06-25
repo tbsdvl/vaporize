@@ -1,5 +1,5 @@
 import { ExecException, execFile } from "node:child_process";
-import { moduleType } from "../index.ts";
+import { moduleType } from "../index.js";
 
 export const executeFilePromise = async (fileName: string): Promise<boolean | ExecException | string> => {
     return new Promise((resolve, reject) => {
