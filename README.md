@@ -1,3 +1,3 @@
 # vaporize
 
-A tool for removing unused dependencies from JavaScript files.
+A tool for removing unused JavaScript dependencies.
