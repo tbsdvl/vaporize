@@ -10,6 +10,7 @@ import {
     getVariableNames,
     findVariableReferences
 } from "./syntax-regex/index.ts";
+import { vaporize } from "../vaporize/index.ts";
 
 export {
     executeFilePromise,
@@ -22,4 +23,5 @@ export {
     getFileExtension,
     moduleType,
     findVariableReferences,
+    vaporize,
 }

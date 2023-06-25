@@ -1,4 +1,4 @@
-import { vaporize } from "../src/vaporize";
+import { vaporize } from "../src/lib";
 import { pathToFileURL, fileURLToPath } from "node:url";
 
 describe('vaporize', () => {
