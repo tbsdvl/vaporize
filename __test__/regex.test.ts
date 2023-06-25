@@ -3,7 +3,7 @@ import {
   getImports,
   getVariableNames,
   findVariableReferences,
-} from "../src/util";
+} from "../src/lib";
 
 describe("regex", () => {
   it("should find the require statement of the CommonJS dependency in the string", () => {
