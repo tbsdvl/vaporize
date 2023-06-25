@@ -151,7 +151,7 @@ describe("regex", () => {
     for (let i = 0; i < variableNames.length; i++) {
       const variableName = variableNames[i];
       findVariableReferences(variableName, noWhiteSpace, unusedReferences);
-      depString = depString.replace(new RegExp(String.raw`(?<=const|let|var)[/\s/]*${variableName}[/\s/]*=[/\s/]*require\(["'][A-Za-z0-9\-]*["']\)[/\s/\;]*`, "gm"), "");
+      depString = depString.replace(new RegExp(String.raw`(?<=const|let|var)[\/\s\/]*${variableName}[\/\s\/]*=[/\s/]*require\(["'][A-Za-z0-9\-]*["']\)[\/\s\/\;]*`, "gm"), "");
     }
 
     expect(unusedReferences.length).toBe(3);
