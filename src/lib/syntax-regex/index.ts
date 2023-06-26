@@ -5,9 +5,7 @@
  * @returns The regex for the dependency's commonJS require statement.
  */
 export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
-  dep = dep.replace(/\./gm, "\\.");
-  dep = dep.replace(/\//gm, "\\/");
-  return hasKeyWord ? String.raw`(?<=const|let|var)[A-Za-z0-9]*=require\(["'.\/A-Za-z0-9]*${dep}["']\)` : String.raw`=require\(["'.\/A-Za-z0-9]*${dep}["']\)`;
+  return hasKeyWord ? String.raw`(?<=const|let|var)\{*[A-Za-z0-9]*\}*=require\(["'.\/A-Za-z0-9]*${dep}["']\)` : String.raw`=require\(["'.\/A-Za-z0-9]*${dep}["']\)`;
 };
 
 /**
@@ -17,10 +15,12 @@ export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
  * @returns the regex for the ESM import.
  */
 export const esm = (imp: string, hasImport: boolean = false): string => {
-  return hasImport ? String.raw`(?<=import)[A-Za-z0-9]*from["']${imp}["']` : String.raw`from["']${imp}["']`;
+  return hasImport ? String.raw`(?<=import)\{*[A-Za-z0-9]*\}*from["']${imp}["']` : String.raw`from["']${imp}["']`;
 };
 
 const getDependencyMatch = (dependency: string, dependencyString: string, isModuleType: boolean = false): string => {
+    dependency = dependency.replace(/\./gm, "\\.");
+    dependency = dependency.replace(/\//gm, "\\/");
     const depRegExp: RegExp = new RegExp(isModuleType ? esm(dependency, true) : commonJS(dependency, true), "gm");
     return dependencyString.match(depRegExp)?.[0] || "";
 }
@@ -36,7 +36,14 @@ export const getImports = (imps: string[], dependencyString: string): string[] =
 export const getVariableNames = (requirements: string[], dependencies: string[], isModuleType: boolean = false): string[] => {
     const variableNames: string[] = [];
     for (let i = 0; i < requirements.length; i++) {
-        variableNames.push(requirements[i].replace(new RegExp(isModuleType ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), ""));
+        let variableName = requirements[i].replace(new RegExp(isModuleType ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), "");
+        if (variableName.includes("{")) {
+            variableName = variableName.replace("{", "");
+        }
+        if (variableName.includes("}")) {
+            variableName = variableName.replace("}", "");
+        }
+        variableNames.push(variableName);
     }
 
     return variableNames;
