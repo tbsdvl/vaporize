@@ -1,1 +1,4 @@
-module.exports = "test";
+const test = "test";
+module.exports = {
+    test
+};
