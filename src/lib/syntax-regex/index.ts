@@ -26,7 +26,13 @@ const getDependencyMatch = (dependency: string, dependencyString: string, isModu
 }
 
 export const getRequirements = (dependencies: string[], dependencyString: string): string[] => {
-    return dependencies.map((dependency: string) => getDependencyMatch(dependency, dependencyString)).filter(x => x);
+    return dependencies.map((dependency: string) => { 
+        const match = getDependencyMatch(dependency, dependencyString);
+        if (match) {
+            dependencyString = dependencyString.replace(new RegExp(String.raw`["']${dependency}["']`), "");
+            return match;
+        }
+    }).filter(x => x);
 }
 
 export const getImports = (imps: string[], dependencyString: string): string[] => {
