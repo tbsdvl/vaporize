@@ -1,1 +1,4 @@
-export default "test";
+const test = "test";
+export {
+    test
+};
