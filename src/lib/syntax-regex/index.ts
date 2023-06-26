@@ -36,7 +36,13 @@ export const getRequirements = (dependencies: string[], dependencyString: string
 }
 
 export const getImports = (imps: string[], dependencyString: string): string[] => {
-    return imps.map((imp: string) => getDependencyMatch(imp, dependencyString, true)).filter(x => x);
+    return imps.map((imp: string) => {
+        const match = getDependencyMatch(imp, dependencyString, true);
+        if (match) {
+            dependencyString = dependencyString.replace(new RegExp(String.raw`["']${imp}["']`), "");
+            return match;
+        }
+    }).filter(x => x);
 }
 
 export const getVariableNames = (requirements: string[], dependencies: string[], isModuleType: boolean = false): string[] => {
