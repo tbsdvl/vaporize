@@ -15,7 +15,7 @@ export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
  * @returns the regex for the ESM import.
  */
 export const esm = (imp: string, hasImport: boolean = false): string => {
-  return hasImport ? String.raw`(?<=import)\{*[A-Za-z0-9]*\}*from["']${imp}["']` : String.raw`from["']${imp}["']`;
+  return hasImport ? String.raw`(?<=import)\{*[A-Za-z0-9,]*\}*from["']${imp}["']` : String.raw`from["']${imp}["']`;
 };
 
 const getDependencyMatch = (dependency: string, dependencyString: string, isModuleType: boolean = false): string => {
@@ -48,20 +48,32 @@ export const getImports = (imps: string[], dependencyString: string): string[] =
 export const getVariableNames = (requirements: string[], dependencies: string[], isModuleType: boolean = false): string[] => {
     const variableNames: string[] = [];
     for (let i = 0; i < requirements.length; i++) {
-        let variableName = requirements[i].replace(new RegExp(isModuleType ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), "");
+        let variableName = requirements[i].replace(new RegExp(isModuleType ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), ""); 
         if (variableName.includes("{")) {
             variableName = variableName.replace("{", "");
         }
         if (variableName.includes("}")) {
             variableName = variableName.replace("}", "");
         }
-        variableNames.push(variableName);
+        let namedImports: Array<string>;
+        if (variableName.includes(",")) {
+            namedImports = variableName.split(",");
+        }
+        if (namedImports?.length) {
+            variableNames.push(...namedImports);
+        } else {
+            variableNames.push(variableName);
+        }
     }
 
     return variableNames;
 }
 
 export const findVariableReferences = (variableName: string, fileString: string, unusedReferences: string[]): void => {
+    /**
+     * NEED TO FIX THE PROBLEM THAT IS CAUSING UNUSED NAMED IMPORTS WITH SIMILAR NAMES TO NOT BE PUSHED TO THE ARRAY
+     * I.E. import { test, test2 } from "..."; will think "test" is used twice.
+     */
     if (fileString.match(new RegExp(String.raw`(?<!"|'|\`|\/|\.)${variableName}(?!"|'|\`|\/)`, "gm"))?.length < 2) {
         unusedReferences.push(variableName);
     }
