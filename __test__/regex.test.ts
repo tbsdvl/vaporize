@@ -147,10 +147,20 @@ describe("regex", () => {
     expect(variableNames.length).toBeGreaterThan(1);
     expect(variableNames).toEqual(["remove", "myApp", "sameLine", "http", "me", "somePkg"]);
 
+    const modules = noWhiteSpace.match(/(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=\s*require\s*\(\s*['"](.+?)['"]\s*\)|import\s*(.+?)\s*from\s*['"](.+?)['"]/gm);
+    expect(modules).not.toBeNull();
+    expect(modules).not.toBeUndefined();
+    let myString = noWhiteSpace;
+    if (modules) {
+      for (let i = 0; i < modules.length; i++) {
+          myString = myString.replace(modules[i], "");
+      }
+    }
+
     const unusedReferences: string[] = [];
     for (let i = 0; i < variableNames.length; i++) {
       const variableName = variableNames[i];
-      findVariableReferences(variableName, noWhiteSpace, unusedReferences);
+      findVariableReferences(variableName, myString, unusedReferences);
       depString = depString.replace(new RegExp(String.raw`(?<=const|let|var)[\/\s\/]*${variableName}[\/\s\/]*=[/\s/]*require\(["'][A-Za-z0-9\-]*["']\)[\/\s\/\;]*`, "gm"), "");
     }
 
