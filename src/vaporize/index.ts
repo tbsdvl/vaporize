@@ -49,13 +49,13 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
 
     // filter out import statements
     const modules = codeWithoutWhiteSpace.match(/(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=\s*require\s*\(\s*['"](.+?)['"]\s*\)|import\s*(.+?)\s*from\s*['"](.+?)['"]/gm);
-    let myString = codeWithoutWhiteSpace;
+    let codeNoModules = codeWithoutWhiteSpace;
     for (let i = 0; i < modules.length; i++) {
-        myString = myString.replace(modules[i], "");
+        codeNoModules = codeNoModules.replace(modules[i], "");
     }
 
     for (let i = 0; i < variableNames.length; i++) {
-        lib.findVariableReferences(variableNames[i], myString, unusedReferences);
+        lib.findVariableReferences(variableNames[i], codeNoModules, unusedReferences);
     }
 
     if (unusedReferences.length === 0) {
