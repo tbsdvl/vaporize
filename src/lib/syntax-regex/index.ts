@@ -70,18 +70,7 @@ export const getVariableNames = (requirements: string[], dependencies: string[],
 }
 
 export const findVariableReferences = (variableName: string, fileString: string, unusedReferences: string[]): void => {
-    /**
-     * NEED TO FIX THE PROBLEM THAT IS CAUSING UNUSED NAMED IMPORTS WITH SIMILAR NAMES TO NOT BE PUSHED TO THE ARRAY
-     * I.E. import { test, test2 } from "..."; will think "test" is used twice.
-     */
-    if (fileString.match(new RegExp(String.raw`(?<!"|'|\`|\/|\.)${variableName}(?!"|'|\`|\/)`, "gm"))?.length < 2) {
+    if (!fileString.match(new RegExp(String.raw`(?<!"|'|\`|\/|\.)${variableName}(?!"|'|\`|\/)`, "gm"))?.length) {
         unusedReferences.push(variableName);
     }
 }
-
-/**
- * need to make functions for regular expressions which check for the following syntaxes:
- * commonJS named dependency i.e. const { name1, name2 } = require("some-package")
- * ESM i.e. import module_name from "my-module"
- * Named ESM i.e. import { name1, name2 } from "my-module"
- */
