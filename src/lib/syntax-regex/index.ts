@@ -5,7 +5,7 @@
  * @returns The regex for the dependency's commonJS require statement.
  */
 export const commonJS = (dep: string, hasKeyWord: boolean = false): string => {
-  return hasKeyWord ? String.raw`(?<=const|let|var)\{*[A-Za-z0-9]*\}*=require\(["'.\/A-Za-z0-9]*${dep}["']\)` : String.raw`=require\(["'.\/A-Za-z0-9]*${dep}["']\)`;
+  return hasKeyWord ? String.raw`(?<=const|let|var)\{*[A-Za-z0-9,]*\}*=require\(["'.\/A-Za-z0-9]*${dep}["']\)` : String.raw`=require\(["'.\/A-Za-z0-9]*${dep}["']\)`;
 };
 
 /**
@@ -26,7 +26,7 @@ const getDependencyMatch = (dependency: string, dependencyString: string, isModu
 }
 
 export const getRequirements = (dependencies: string[], dependencyString: string): string[] => {
-    return dependencies.map((dependency: string) => { 
+    return dependencies.map((dependency: string) => {
         const match = getDependencyMatch(dependency, dependencyString);
         if (match) {
             dependencyString = dependencyString.replace(new RegExp(String.raw`["']${dependency}["']`), "");

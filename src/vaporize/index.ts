@@ -53,7 +53,6 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     for (let i = 0; i < modules.length; i++) {
         myString = myString.replace(modules[i], "");
     }
-    console.log(myString);
 
     for (let i = 0; i < variableNames.length; i++) {
         lib.findVariableReferences(variableNames[i], myString, unusedReferences);
