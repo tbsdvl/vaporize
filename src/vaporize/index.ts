@@ -89,6 +89,25 @@ const compileTypeScriptToJavaScript = async (filePath: string, tempDirPath: stri
     await renameFiles(tempDirPath);
 }
 
+const deleteDirectory = async (directoryPath: string) => {
+    try {
+        const dir = await fs.opendir(directoryPath);
+
+        for await (const dirent of dir) {
+          const filePath = path.join(directoryPath, dirent.name);
+          if (dirent.isDirectory()) {
+            await deleteDirectory(filePath); // Recursively delete subdirectories
+          } else {
+            await fs.unlink(filePath); // Delete files
+          }
+        }
+
+        await fs.rmdir(directoryPath); // Delete the empty directory
+      } catch (error) {
+        console.error('Failed to delete directory:', error);
+      }
+}
+
 const renameFiles = async (tempDirPath: string) => {
     const files = await fs.readdir(tempDirPath);
     files.forEach(async (file) => {
@@ -155,7 +174,11 @@ export const vaporize = async (filePath: string) => {
         }
 
         // delete the file or folder.
-        await fs.unlink(tempFilePath);
+        if (fileData.ext === EXTENSION.ts) {
+            await deleteDirectory(tempFilePath);
+        } else {
+            await fs.unlink(tempFilePath);
+        }
 
         if (ERROR_LIST.length === 0) {
             await fs.writeFile(filePath, fileData.file);
