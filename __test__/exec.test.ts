@@ -13,7 +13,7 @@ describe("exec", () => {
     }, 10000);
 
     it("should successfully compile a TypeScript file to a JavaScript file", async () => {
-        const compileFileResult = await compileTypeScriptPromise("./__test__/testESMFiles/index.ts", `./__test__/testESM/${randomUUID()}/`);
+        const compileFileResult = await compileTypeScriptPromise("./__test__/testESMFiles/index.ts", `./__test__/testESMFiles/${randomUUID()}/`);
         expect(compileFileResult).toBeTruthy();
     }, 30000);
 })

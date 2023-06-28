@@ -84,18 +84,41 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     return true;
 }
 
-// const compileTypeScriptToJavaScript = async (filePath: string, tempDirPath: string, fileData: FileData) => {
-//         // ex. temp out dir
-//         // targetDirectory + /randomUUID()/
-//         // compile typescript to javascript & store in temp dir
-//         // const result = await lib.compileTypeScriptPromise()
-// }
+const compileTypeScriptToJavaScript = async (filePath: string, tempDirPath: string) => {
+    await lib.compileTypeScriptPromise(filePath, tempDirPath);
+    await renameFiles(tempDirPath);
+}
+
+const renameFiles = async (tempDirPath: string) => {
+    const files = await fs.readdir(tempDirPath);
+    files.forEach(async (file) => {
+        const filePath = path.join(tempDirPath, file);
+
+        const stats = await fs.stat(filePath);
+
+        if (stats.isDirectory()) {
+            // Recursively handle subdirectories
+            renameFiles(filePath);
+        } else {
+            // Rename the file with a .cjs file extension
+            const newFilePath = path.join(tempDirPath, path.parse(file).name + '.cjs');
+
+            await fs.rename(filePath, newFilePath);
+        }
+    })
+}
 
 const writeTempFile = async (filePath: string, fileData: FileData): Promise<string> => {
     const temp = path.resolve(filePath);
     const targetDirectory = path.resolve(temp.replace(path.basename(temp), "").replace("/src", ""), path.dirname(filePath));
-    const tempFilePath = path.join(targetDirectory, randomUUID() + fileData.ext);
-    await fs.writeFile(tempFilePath, fileData.file);
+    let tempFilePath: string;
+    if (fileData.ext === EXTENSION.ts) {
+        tempFilePath = path.join(targetDirectory, "/", randomUUID(), "/");
+        await compileTypeScriptToJavaScript(filePath, tempFilePath);
+    } else {
+        tempFilePath = path.join(targetDirectory, randomUUID() + fileData.ext);
+        await fs.writeFile(tempFilePath, fileData.file);
+    }
     return tempFilePath;
 }
 
@@ -120,12 +143,18 @@ export const vaporize = async (filePath: string) => {
 
     if (hasRemovedUnusedDependencies) {
         const tempFilePath = await writeTempFile(filePath, fileData);
-        const readTempFileResult = await lib.executeFilePromise(tempFilePath);
+        let readTempFileResult;
+        if (fileData.ext === EXTENSION.ts) {
+            // execute the javascript file in the new folder.
+            readTempFileResult = await lib.executeFilePromise(tempFilePath + path.parse(filePath).base.replace(EXTENSION.ts, EXTENSION.cjs));
+        } else {
+            readTempFileResult = await lib.executeFilePromise(tempFilePath);
+        }
         if (typeof (readTempFileResult) !== "boolean" && typeof (readTempFileResult) !== "undefined") {
             ERROR_LIST.push(readTempFileResult);
         }
 
-        // delete the file
+        // delete the file or folder.
         await fs.unlink(tempFilePath);
 
         if (ERROR_LIST.length === 0) {
