@@ -148,7 +148,7 @@ const writeTempFile = async (filePath: string, fileData: FileData): Promise<stri
  */
 export const vaporize = async (filePath: string) => {
     const fileData = await getFileData(filePath);
-    const dependencies: Array<string> = precinct(fileData.file);
+    const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
     if (dependencies.length === 0) {
         return;
     }

@@ -29,4 +29,8 @@ describe('vaporize', () => {
     it('should sanitize the code in a TypeScript file', async () => {
         await expect(vaporize(fileURLToPath(pathToFileURL("__test__/testESMFiles/index.ts")))).resolves.not.toThrow();
     }, 20000);
+
+    it('should sanitize the code in a B1S client app file', async () => {
+        await expect(vaporize(fileURLToPath(pathToFileURL("../../source/repos/eAZ2/src/EAZ.Web/ClientApp/src/app/business-applications/business-application-dashboard.component.ts")))).resolves.not.toThrow();
+    }, 20000);
 });

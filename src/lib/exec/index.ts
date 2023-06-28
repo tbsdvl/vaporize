@@ -29,10 +29,13 @@ export const compileTypeScriptPromise = async (fileName: string, tempDir: string
         execFile(
             'npx',
             ["tsc", fileName, "--outDir", tempDir],
+            {
+                shell: true,
+            },
             (error, stdout, stderr) => {
-                if (error) {
-                    reject(error);
-                }
+                // if (error) {
+                //     reject(error);
+                // }
 
                 if (stdout) {
                     console.log(stdout);
