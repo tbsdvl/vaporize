@@ -84,6 +84,13 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     return true;
 }
 
+// const compileTypeScriptToJavaScript = async (filePath: string, tempDirPath: string, fileData: FileData) => {
+//         // ex. temp out dir
+//         // targetDirectory + /randomUUID()/
+//         // compile typescript to javascript & store in temp dir
+//         // const result = await lib.compileTypeScriptPromise()
+// }
+
 const writeTempFile = async (filePath: string, fileData: FileData): Promise<string> => {
     const temp = path.resolve(filePath);
     const targetDirectory = path.resolve(temp.replace(path.basename(temp), "").replace("/src", ""), path.dirname(filePath));
