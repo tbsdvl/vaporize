@@ -46,8 +46,16 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
       : lib.getRequirements(dependencies, codeWithoutWhiteSpace);
     const variableNames = lib.getVariableNames(dependencyStatements, dependencies, isEsm);
     const unusedReferences: Array<string> = [];
+
+    // filter out import statements
+    const modules = codeWithoutWhiteSpace.match(/(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=\s*require\s*\(\s*['"](.+?)['"]\s*\)|import\s*(.+?)\s*from\s*['"](.+?)['"]/gm);
+    let codeNoModules = codeWithoutWhiteSpace;
+    for (let i = 0; i < modules.length; i++) {
+        codeNoModules = codeNoModules.replace(modules[i], "");
+    }
+
     for (let i = 0; i < variableNames.length; i++) {
-        lib.findVariableReferences(variableNames[i], codeWithoutWhiteSpace, unusedReferences);
+        lib.findVariableReferences(variableNames[i], codeNoModules, unusedReferences);
     }
 
     if (unusedReferences.length === 0) {
@@ -56,10 +64,21 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     }
 
     for (let i = 0; i < unusedReferences.length; i++) {
-        const pattern = isEsm
-        ? String.raw`import[/\s/]*${unusedReferences[i]}[\/\s\/]*from[\/\s\/]*["'][A-Za-z0-9\-\/\.\:]*["'][\/\s\/\;]*`
-        : String.raw`(const|let|var)[\/\s\/]*${unusedReferences[i]}[\/\s\/]*=[\/\s\/]*require\(["'][A-Za-z0-9\-\/\.\:]*["']\)[\/\s\/\;]*`;
-        fileData.file = fileData.file.replace(new RegExp(pattern, "gm"), "");
+        let pattern: string;
+        pattern = isEsm
+        ? String.raw`import[/\s/\{]*${unusedReferences[i]}[\/\s\/\}]*from[\/\s\/]*["'][A-Za-z0-9\-\/\.\:]*["'][\/\s\/\;]*`
+        : String.raw`(const|let|var)[\/\s\/\{]*${unusedReferences[i]}[\/\s\/\}]*=[\/\s\/]*require\(["'][A-Za-z0-9\-\/\.\:]*["']\)[\/\s\/\;]*`;
+        let matches: RegExpMatchArray;
+        matches = fileData.file.match(new RegExp(pattern, "gm"));
+        if (matches) {
+            fileData.file = fileData.file.replace(new RegExp(pattern, "gm"), "");
+            continue;
+        }
+        pattern = String.raw`\b${unusedReferences[i]}\b,?`;
+        matches = fileData.file.match(new RegExp(pattern));
+        if (matches) {
+            fileData.file = fileData.file.replace(new RegExp(pattern), "");
+        }
     }
 
     return true;
@@ -98,10 +117,10 @@ export const vaporize = async (filePath: string) => {
         if (typeof (readTempFileResult) !== "boolean" && typeof (readTempFileResult) !== "undefined") {
             ERROR_LIST.push(readTempFileResult);
         }
-    
+
         // delete the file
         await fs.unlink(tempFilePath);
-    
+
         if (ERROR_LIST.length === 0) {
             await fs.writeFile(filePath, fileData.file);
         }
