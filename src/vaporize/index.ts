@@ -4,6 +4,7 @@ import precinct from "precinct";
 import fs from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 interface FileData {
     ext: string;
@@ -16,6 +17,8 @@ interface FileData {
  */
 const ERROR_LIST = [];
 
+const modulePattern: RegExp = /(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=\s*require\s*\(\s*['"](.+?)['"]\s*\)|import\s*(.+?)\s*from\s*['"](.+?)['"]/gm;
+
 /**
  * Gets the extension and contents of a file.
  * @param {string} filePath The path to the file.
@@ -27,6 +30,7 @@ const getFileData = async (filePath: string): Promise<any> => {
         return {
             ext: fileExtension,
             file: (await lib.readFile(filePath)).toString(),
+            // get the file name too
         };
     }
 
@@ -42,8 +46,8 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     const unusedReferences: Array<string> = [];
 
     // filter out import statements
-    const modules = codeWithoutWhiteSpace.match(/(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=\s*require\s*\(\s*['"](.+?)['"]\s*\)|import\s*(.+?)\s*from\s*['"](.+?)['"]/gm);
-    let codeNoModules = codeWithoutWhiteSpace;
+    const modules = fileData.file.match(modulePattern);
+    let codeNoModules = fileData.file;
     for (let i = 0; i < modules.length; i++) {
         codeNoModules = codeNoModules.replace(modules[i], "");
     }
@@ -101,12 +105,14 @@ const deleteDirectory = async (directoryPath: string) => {
       }
 }
 
-const compileTempDirectory = async (filePath: string, fileString: string): Promise<string> => {
+const compile = async (filePath: string, fileString: string): Promise<string> => {
     const temp = path.resolve(filePath);
     const targetDirectory = path.resolve(temp.replace(path.basename(temp), "").replace("/src", ""), path.dirname(filePath));
     const uuid = randomUUID();
     const tempDirectory = path.join(targetDirectory, "/", uuid, "/");
     let tempEntryPoint = targetDirectory + `${randomUUID()}-${path.basename(temp)}`;
+    // can set --project flag in tsc to compile a directory of ts/nodejs files to javascript.
+    // will need to create a temp file for each of the files related to the target filePath.
     try {
         await fs.mkdir(tempDirectory);
         await fs.writeFile(tempEntryPoint, fileString);
@@ -122,12 +128,7 @@ const isSourceCodeModule = (filePath: string) => {
     return (filePath.startsWith('./') || filePath.startsWith('../') || filePath.startsWith('/'));
 }
 
-/**
- * Removes references to unused dependencies in a JavaScript or TypeScript file.
- * @param {string} filePath The path to the file.
- * @returns
- */
-export const vaporize = async (filePath: string) => {
+const transformFiles = async (filePath: string, files: FileData[]) => {
     const fileData = await getFileData(filePath);
     const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
     if (dependencies.length === 0) {
@@ -141,10 +142,44 @@ export const vaporize = async (filePath: string) => {
         hasRemovedUnusedDependencies = removeUnusedDependencies(fileData, dependencies, false);
     }
 
+    if (hasRemovedUnusedDependencies) {
+        files.push(fileData);
+    }
+
+    const sourceModules = dependencies.filter(x => isSourceCodeModule(x));
+    for (let i = 0; i < sourceModules.length; i++) {
+        transformFiles(sourceModules[i], files);
+    }
+}
+
+/**
+ * Removes references to unused dependencies in a JavaScript or TypeScript file.
+ * @param {string} filePath The path to the file.
+ * @returns
+ */
+export const vaporize = async (filePath: string) => {
+    filePath = fileURLToPath(pathToFileURL(filePath));
+    const fileData = await getFileData(filePath);
+    const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
+    if (dependencies.length === 0) {
+        return;
+    }
+
+    let hasRemovedUnusedDependencies: boolean;
+    if ((fileData.ext === EXTENSION.js && fileData.file.includes("import")) || fileData.ext === EXTENSION.ts) {
+        hasRemovedUnusedDependencies = removeUnusedDependencies(fileData, dependencies, true);
+    } else if (fileData.ext === EXTENSION.cjs || fileData.ext === EXTENSION.js) {
+        hasRemovedUnusedDependencies = removeUnusedDependencies(fileData, dependencies, false);
+    }
+
+    // make the temporary directory
+    // write each source module file to the temporary directory
+    // compile the temporary directory to javascript
+
     let tempFilePath: string;
     try {
         if (hasRemovedUnusedDependencies) {
-            tempFilePath = await compileTempDirectory(filePath, fileData.file);
+            tempFilePath = await compile(filePath, fileData.file);
         }
     } catch (e) {
         console.error(e);

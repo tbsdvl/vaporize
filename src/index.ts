@@ -1,5 +1,4 @@
 import { vaporize } from "./lib/index.js";
-import { pathToFileURL, fileURLToPath } from "node:url";
 
 const run = async () => {
     if (!process.argv[2] || process.argv.length > 3) {
@@ -7,7 +6,7 @@ const run = async () => {
         process.exit(0);
     }
     try {
-        await vaporize(fileURLToPath(pathToFileURL(process.argv[2])));
+        await vaporize(process.argv[2]);
     } catch (e) {
         process.exit(1);
     }
