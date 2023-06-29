@@ -70,7 +70,7 @@ export const getVariableNames = (requirements: string[], dependencies: string[],
 }
 
 export const findVariableReferences = (variableName: string, fileString: string, unusedReferences: string[]): void => {
-    if (!fileString.match(new RegExp(String.raw`(?<!"|'|\`|\/|\.)${variableName}(?!"|'|\`|\/)`, "gm"))?.length) {
+    if (!fileString.match(new RegExp(String.raw`(?<!"|'|\`|\/|\.)\b${variableName}\b(?!"|'|\`|\/)`, "gm"))?.length) {
         unusedReferences.push(variableName);
     }
 }

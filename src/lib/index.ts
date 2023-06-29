@@ -1,7 +1,6 @@
-import { executeFilePromise, compileTypeScriptPromise } from "./exec/index.js";
+import { compileToJavaScriptPromise } from "./exec/index.js";
 import { readFile } from "./file/index.js";
 import { getFileExtension } from "./extension/index.js";
-import moduleType from "./pkg/index.js";
 import {
     commonJS,
     esm,
@@ -13,8 +12,7 @@ import {
 import { vaporize } from "../vaporize/index.js";
 
 export {
-    executeFilePromise,
-    compileTypeScriptPromise,
+    compileToJavaScriptPromise,
     readFile,
     commonJS,
     esm,
@@ -22,7 +20,6 @@ export {
     getImports,
     getVariableNames,
     getFileExtension,
-    moduleType,
     findVariableReferences,
     vaporize,
 }

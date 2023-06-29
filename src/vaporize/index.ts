@@ -8,9 +8,6 @@ import path from "node:path";
 interface FileData {
     ext: string;
     file: string;
-    initFilePath: string;
-    entryPoint: string;
-    uuid: string;
 }
 
 /**
@@ -18,12 +15,6 @@ interface FileData {
  * @type {Array}
  */
 const ERROR_LIST = [];
-
-/**
- * The list of sanitized files.
- * @type {Array<string>}
- */
-const SANITIZED_FILES: Array<string> = [];
 
 /**
  * Gets the extension and contents of a file.
@@ -36,7 +27,6 @@ const getFileData = async (filePath: string): Promise<any> => {
         return {
             ext: fileExtension,
             file: (await lib.readFile(filePath)).toString(),
-            initFilePath: filePath.replace(/\\/g, "\\\\"),
         };
     }
 
@@ -70,8 +60,8 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     for (let i = 0; i < unusedReferences.length; i++) {
         let pattern: string;
         pattern = isEsm
-        ? String.raw`import[/\s/\{]*${unusedReferences[i]}[\/\s\/\}]*from[\/\s\/]*["'][A-Za-z0-9\-\/\.\:]*["'][\/\s\/\;]*`
-        : String.raw`(const|let|var)[\/\s\/\{]*${unusedReferences[i]}[\/\s\/\}]*=[\/\s\/]*require\(["'][A-Za-z0-9\-\/\.\:]*["']\)[\/\s\/\;]*`;
+        ? String.raw`import[/\s/\{]*${unusedReferences[i]}[\/\s\/\}]*from[\/\s\/]*["'][A-Za-z0-9\-\/\.\:\@]*["'][\/\s\/\;]*`
+        : String.raw`(const|let|var)[\/\s\/\{]*${unusedReferences[i]}[\/\s\/\}]*=[\/\s\/]*require\(["'][A-Za-z0-9\-\/\.\:\@]*["']\)[\/\s\/\;]*`;
         let matches: RegExpMatchArray;
         matches = fileData.file.match(new RegExp(pattern, "gm"));
         if (matches) {
@@ -88,9 +78,8 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     return true;
 }
 
-const compileTypeScriptToJavaScript = async (filePath: string, tempDirPath: string, fileData: FileData) => {
-    await lib.compileTypeScriptPromise(filePath, tempDirPath);
-    await renameFiles(tempDirPath, fileData);
+const compileToJavaScript = async (filePath: string, tempDirPath: string) => {
+    return await lib.compileToJavaScriptPromise(filePath, tempDirPath);
 }
 
 const deleteDirectory = async (directoryPath: string) => {
@@ -112,50 +101,25 @@ const deleteDirectory = async (directoryPath: string) => {
       }
 }
 
-const renameFiles = async (tempDirPath: string, fileData: FileData) => {
-    const files = await fs.readdir(tempDirPath);
-    for (let i = 0; i < files.length; i++) {
-        const filePath = path.join(tempDirPath, files[i]);
-
-        const stats = await fs.stat(filePath);
-
-        if (stats.isDirectory()) {
-            // Recursively handle subdirectories
-            await renameFiles(filePath, fileData);
-        } else {
-            // Rename the file with a .cjs file extension
-            const newFilePath = path.join(tempDirPath, path.parse(files[i]).name + '.cjs');
-            if (!fileData.entryPoint) {
-                let tempPath = newFilePath.replace(/\\/g, "\\\\").replace(String.raw`\\${fileData.uuid}`, "");
-                if (tempPath === fileData.initFilePath.replace(EXTENSION.ts, EXTENSION.cjs)) {
-                    fileData.entryPoint = newFilePath;
-                }
-                tempPath = newFilePath.replace(/\\/g, "\\\\").replace(new RegExp(String.raw`${fileData.uuid}[\\]+\\([A-Za-z0-9\-]*\\+)?`), "");
-                if (tempPath === fileData.initFilePath.replace(EXTENSION.ts, EXTENSION.cjs)) {
-                    fileData.entryPoint = newFilePath;
-                }
-            }
-
-            await fs.rename(filePath, newFilePath);
-        }
-    }
-}
-
-const writeTempFile = async (filePath: string, fileData: FileData): Promise<string> => {
+const compileTempDirectory = async (filePath: string, fileString: string): Promise<string> => {
     const temp = path.resolve(filePath);
     const targetDirectory = path.resolve(temp.replace(path.basename(temp), "").replace("/src", ""), path.dirname(filePath));
-    let tempFilePath: string;
-    fileData.uuid = randomUUID();
-    if (fileData.ext === EXTENSION.ts) {
-        // C:\Users\TristonBurns\source\repos\eAZ2\src\EAZ.Web\ClientApp\src\app\business-applications\34177000-1708-4aa8-850f-c8d717a266ad\
-        tempFilePath = path.join(targetDirectory, "/", fileData.uuid, "/");
-        // entrypoint is @
-        await compileTypeScriptToJavaScript(filePath, tempFilePath, fileData);
-    } else {
-        tempFilePath = path.join(targetDirectory, fileData.uuid + fileData.ext);
-        await fs.writeFile(tempFilePath, fileData.file);
+    const uuid = randomUUID();
+    const tempDirectory = path.join(targetDirectory, "/", uuid, "/");
+    let tempEntryPoint = targetDirectory + `${randomUUID()}-${path.basename(temp)}`;
+    try {
+        await fs.mkdir(tempDirectory);
+        await fs.writeFile(tempEntryPoint, fileString);
+        await compileToJavaScript(tempEntryPoint, tempDirectory);
+    } catch (e) {
+    } finally {
+        await fs.unlink(tempEntryPoint);
     }
-    return tempFilePath;
+    return tempDirectory;
+}
+
+const isSourceCodeModule = (filePath: string) => {
+    return (filePath.startsWith('./') || filePath.startsWith('../') || filePath.startsWith('/'));
 }
 
 /**
@@ -180,28 +144,13 @@ export const vaporize = async (filePath: string) => {
     let tempFilePath: string;
     try {
         if (hasRemovedUnusedDependencies) {
-            tempFilePath = await writeTempFile(filePath, fileData);
-            let readTempFileResult;
-            if (fileData.ext === EXTENSION.ts) {
-                readTempFileResult = await lib.executeFilePromise(fileData.entryPoint);
-            } else {
-                readTempFileResult = await lib.executeFilePromise(tempFilePath);
-            }
-            if (typeof (readTempFileResult) !== "boolean" && typeof (readTempFileResult) !== "undefined") {
-                ERROR_LIST.push(readTempFileResult);
-            }
+            tempFilePath = await compileTempDirectory(filePath, fileData.file);
         }
     } catch (e) {
         console.error(e);
         ERROR_LIST.push(e);
     } finally {
-        // delete the file or folder.
-        if (fileData.ext === EXTENSION.ts) {
-            await deleteDirectory(tempFilePath);
-        } else {
-            await fs.unlink(tempFilePath);
-        }
-
+        await deleteDirectory(tempFilePath);
         if (ERROR_LIST.length === 0) {
             await fs.writeFile(filePath, fileData.file);
         }
