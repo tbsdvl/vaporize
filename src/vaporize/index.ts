@@ -39,7 +39,7 @@ const getFileData = async (filePath: string): Promise<any> => {
     throw new Error("Invalid file type.");
 }
 
-const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string>, isEsm: boolean): boolean => {
+const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string>, isEsm: boolean): void => {
     const codeWithoutWhiteSpace: string = fileData.file.replace(/\s/g, "");
     const dependencyStatements = isEsm
       ? lib.getImports(dependencies, codeWithoutWhiteSpace)
@@ -60,7 +60,7 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
 
     if (unusedReferences.length === 0) {
         console.log("No unused dependencies found.");
-        return false;
+        return;
     }
 
     for (let i = 0; i < unusedReferences.length; i++) {
@@ -80,15 +80,13 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
             fileData.file = fileData.file.replace(new RegExp(pattern), "");
         }
     }
-
-    return true;
 }
 
 const compileToJavaScript = async (tempDirPath: string) => {
     return await lib.compileToJavaScriptPromise(tempDirPath);
 }
 
-const deleteDirectory = async (directoryPath: string) => {
+const deleteDirectory = async (directoryPath: string): Promise<void> => {
     try {
         const dir = await fs.opendir(directoryPath);
 
@@ -107,7 +105,7 @@ const deleteDirectory = async (directoryPath: string) => {
       }
 }
 
-const createTsConfigJson = async (targetFile: string, tempDir: string) => {
+const createTsConfig = async (targetFile: string, tempDir: string): Promise<void> => {
     let config: Buffer | any;
     const extension = lib.getFileExtension(targetFile);
     if (extension === EXTENSION.ts) {
@@ -126,7 +124,7 @@ const compile = async (files: FileData[]): Promise<string> => {
     const uuid = randomUUID();
     const tempDirectory = path.join(targetDirectory, "/", uuid, "/");
     await fs.mkdir(tempDirectory);
-    await createTsConfigJson(targetFile, tempDirectory);
+    await createTsConfig(targetFile, tempDirectory);
     await fs.mkdir(tempDirectory + "src/");
     for (let i = 0; i < files.length; i++) {
         // need to check for a directory
@@ -134,30 +132,33 @@ const compile = async (files: FileData[]): Promise<string> => {
         // if the directory is not in the temp build, create it
         // write the file to the new directory.
         try {
-            await fs.writeFile(tempDirectory + "src/" + files[i].filePath.replace(targetDirectory + "/", ""), files[i].file);
+            await fs.writeFile(tempDirectory + "src" + files[i].filePath.replace(targetDirectory, ""), files[i].file);
         } catch (e) {
             console.error(e);
-        } finally {
             await deleteDirectory(tempDirectory);
-            throw new Error("An error occurred while trying to write the file.")
+            throw new Error("An error occurred while trying to write the file.");
         }
     }
     await compileToJavaScript(tempDirectory);
     return tempDirectory;
 }
 
-const isSourceCodeModule = (filePath: string) => {
-    return (filePath.startsWith('./') || filePath.startsWith('../') || filePath.startsWith('/'));
+const isSourceCodeModule = (filePath: string): boolean => {
+    return (filePath.startsWith('./') || filePath.startsWith('../') || filePath.startsWith('/')) && !filePath.includes("node_modules");
 }
 
-const transformFiles = async (filePath: string, basePath: string, files: FileData[]) => {
+const getFilePath = (filePath: string): string => {
+    return fileURLToPath(pathToFileURL(filePath));
+}
+
+const transformFiles = async (filePath: string, basePath: string, files: FileData[]): Promise<void> => {
     if (!path.extname(filePath)) {
         const foundFile = checkIfFileExists(filePath);
         if (foundFile) {
-            filePath = fileURLToPath(pathToFileURL(foundFile));
+            filePath = getFilePath(filePath);
         }
     } else {
-        filePath = fileURLToPath(pathToFileURL(filePath));
+        filePath = getFilePath(filePath);
     }
     const fileData = await getFileData(filePath);
     const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
@@ -186,7 +187,7 @@ const transformFiles = async (filePath: string, basePath: string, files: FileDat
  */
 export const vaporize = async (filePath: string) => {
     let files = [];
-    await transformFiles(filePath, fileURLToPath(pathToFileURL(filePath)).replace(path.basename(filePath), ""), files);
+    await transformFiles(filePath, getFilePath(filePath).replace(path.basename(filePath), ""), files);
     console.log("# of files: ", files.length);
 
     await compile(files);
