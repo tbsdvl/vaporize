@@ -26,6 +26,7 @@ const modulePattern: RegExp = /(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=
  */
 const getFileData = async (filePath: string): Promise<any> => {
     const fileExtension = lib.getFileExtension(filePath);
+    // read files with appended extension if path does not include ext.
     if (Object.values(EXTENSION).includes(fileExtension)) {
         return {
             ext: fileExtension,
@@ -128,36 +129,7 @@ const isSourceCodeModule = (filePath: string) => {
     return (filePath.startsWith('./') || filePath.startsWith('../') || filePath.startsWith('/'));
 }
 
-const transformFiles = async (filePath: string, files: FileData[]) => {
-    const fileData = await getFileData(filePath);
-    const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
-    if (dependencies.length === 0) {
-        return;
-    }
-
-    let hasRemovedUnusedDependencies: boolean;
-    if ((fileData.ext === EXTENSION.js && fileData.file.includes("import")) || fileData.ext === EXTENSION.ts) {
-        hasRemovedUnusedDependencies = removeUnusedDependencies(fileData, dependencies, true);
-    } else if (fileData.ext === EXTENSION.cjs || fileData.ext === EXTENSION.js) {
-        hasRemovedUnusedDependencies = removeUnusedDependencies(fileData, dependencies, false);
-    }
-
-    if (hasRemovedUnusedDependencies) {
-        files.push(fileData);
-    }
-
-    const sourceModules = dependencies.filter(x => isSourceCodeModule(x));
-    for (let i = 0; i < sourceModules.length; i++) {
-        transformFiles(sourceModules[i], files);
-    }
-}
-
-/**
- * Removes references to unused dependencies in a JavaScript or TypeScript file.
- * @param {string} filePath The path to the file.
- * @returns
- */
-export const vaporize = async (filePath: string) => {
+const transformFiles = async (filePath: string, basePath: string, files: FileData[]) => {
     filePath = fileURLToPath(pathToFileURL(filePath));
     const fileData = await getFileData(filePath);
     const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
@@ -172,22 +144,46 @@ export const vaporize = async (filePath: string) => {
         hasRemovedUnusedDependencies = removeUnusedDependencies(fileData, dependencies, false);
     }
 
+    if (hasRemovedUnusedDependencies) {
+        files = [...files, fileData];
+    }
+
+    const sourceModules = dependencies.filter(x => isSourceCodeModule(x));
+    for (let i = 0; i < sourceModules.length; i++) {
+        transformFiles(basePath + sourceModules[i], basePath, files);
+    }
+}
+
+/**
+ * Removes references to unused dependencies in a JavaScript or TypeScript file.
+ * @param {string} filePath The path to the file.
+ * @returns
+ */
+export const vaporize = async (filePath: string) => {
+    let files = [];
+    await transformFiles(filePath, fileURLToPath(pathToFileURL(filePath)).replace(path.basename(filePath), ""), files);
+    console.log("# of files: " + files.length);
+
+    for (let i = 0; i < files.length; i++) {
+        console.log(files[i]);
+    }
+
     // make the temporary directory
     // write each source module file to the temporary directory
     // compile the temporary directory to javascript
 
-    let tempFilePath: string;
-    try {
-        if (hasRemovedUnusedDependencies) {
-            tempFilePath = await compile(filePath, fileData.file);
-        }
-    } catch (e) {
-        console.error(e);
-        ERROR_LIST.push(e);
-    } finally {
-        await deleteDirectory(tempFilePath);
-        if (ERROR_LIST.length === 0) {
-            await fs.writeFile(filePath, fileData.file);
-        }
-    }
+    // let tempFilePath: string;
+    // try {
+    //     if (hasRemovedUnusedDependencies) {
+    //         tempFilePath = await compile(filePath, fileData.file);
+    //     }
+    // } catch (e) {
+    //     console.error(e);
+    //     ERROR_LIST.push(e);
+    // } finally {
+    //     await deleteDirectory(tempFilePath);
+    //     if (ERROR_LIST.length === 0) {
+    //         await fs.writeFile(filePath, fileData.file);
+    //     }
+    // }
 }
