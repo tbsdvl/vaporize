@@ -5,10 +5,12 @@ import fs from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { checkIfFileExists } from "../lib/extension/index.js";
 
 interface FileData {
     ext: string;
     file: string;
+    filePath: string;
 }
 
 /**
@@ -26,12 +28,11 @@ const modulePattern: RegExp = /(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=
  */
 const getFileData = async (filePath: string): Promise<any> => {
     const fileExtension = lib.getFileExtension(filePath);
-    // read files with appended extension if path does not include ext.
     if (Object.values(EXTENSION).includes(fileExtension)) {
         return {
             ext: fileExtension,
             file: (await lib.readFile(filePath)).toString(),
-            // get the file name too
+            filePath: filePath
         };
     }
 
@@ -83,8 +84,8 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     return true;
 }
 
-const compileToJavaScript = async (filePath: string, tempDirPath: string) => {
-    return await lib.compileToJavaScriptPromise(filePath, tempDirPath);
+const compileToJavaScript = async (tempDirPath: string) => {
+    return await lib.compileToJavaScriptPromise(tempDirPath);
 }
 
 const deleteDirectory = async (directoryPath: string) => {
@@ -106,22 +107,41 @@ const deleteDirectory = async (directoryPath: string) => {
       }
 }
 
-const compile = async (filePath: string, fileString: string): Promise<string> => {
-    const temp = path.resolve(filePath);
-    const targetDirectory = path.resolve(temp.replace(path.basename(temp), "").replace("/src", ""), path.dirname(filePath));
+const createTsConfigJson = async (targetFile: string, tempDir: string) => {
+    let config: Buffer | any;
+    const extension = lib.getFileExtension(targetFile);
+    if (extension === EXTENSION.ts) {
+        config = await fs.readFile(`${path.resolve()}/src/lib/config/ts.json`, "utf-8");
+    } else {
+        config = await fs.readFile(`${path.resolve()}/src/lib/config/js.json`, "utf-8");
+    }
+    config = JSON.parse(config);
+    config.include = [`src/**/*${extension}`];
+    await fs.writeFile(tempDir + "/tsconfig.json", JSON.stringify(config));
+}
+
+const compile = async (files: FileData[]): Promise<string> => {
+    const targetFile = path.resolve(files[0].filePath);
+    const targetDirectory = path.resolve(targetFile.replace(path.basename(targetFile), "").replace("/src", ""), path.dirname(files[0].filePath));
     const uuid = randomUUID();
     const tempDirectory = path.join(targetDirectory, "/", uuid, "/");
-    let tempEntryPoint = targetDirectory + `${randomUUID()}-${path.basename(temp)}`;
-    // can set --project flag in tsc to compile a directory of ts/nodejs files to javascript.
-    // will need to create a temp file for each of the files related to the target filePath.
-    try {
-        await fs.mkdir(tempDirectory);
-        await fs.writeFile(tempEntryPoint, fileString);
-        await compileToJavaScript(tempEntryPoint, tempDirectory);
-    } catch (e) {
-    } finally {
-        await fs.unlink(tempEntryPoint);
+    await fs.mkdir(tempDirectory);
+    await createTsConfigJson(targetFile, tempDirectory);
+    await fs.mkdir(tempDirectory + "src/");
+    for (let i = 0; i < files.length; i++) {
+        // need to check for a directory
+        // if the directory is in the temp build, write the file
+        // if the directory is not in the temp build, create it
+        // write the file to the new directory.
+        await fs.writeFile(tempDirectory + "src/" + files[i].filePath.replace(targetDirectory + "/", ""), files[i].file);
+        // try {
+        //     // await fs.mkdir(tempDirectory);
+        // } catch (e) {
+        // } finally {
+        //     await fs.unlink(tempFileName);
+        // }
     }
+    await compileToJavaScript(tempDirectory);
     return tempDirectory;
 }
 
@@ -130,27 +150,31 @@ const isSourceCodeModule = (filePath: string) => {
 }
 
 const transformFiles = async (filePath: string, basePath: string, files: FileData[]) => {
-    filePath = fileURLToPath(pathToFileURL(filePath));
+    if (!path.extname(filePath)) {
+        const foundFile = checkIfFileExists(filePath);
+        if (foundFile) {
+            filePath = fileURLToPath(pathToFileURL(foundFile));
+        }
+    } else {
+        filePath = fileURLToPath(pathToFileURL(filePath));
+    }
     const fileData = await getFileData(filePath);
     const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
     if (dependencies.length === 0) {
+        files.push(fileData);
         return;
     }
 
-    let hasRemovedUnusedDependencies: boolean;
     if ((fileData.ext === EXTENSION.js && fileData.file.includes("import")) || fileData.ext === EXTENSION.ts) {
-        hasRemovedUnusedDependencies = removeUnusedDependencies(fileData, dependencies, true);
+        removeUnusedDependencies(fileData, dependencies, true);
     } else if (fileData.ext === EXTENSION.cjs || fileData.ext === EXTENSION.js) {
-        hasRemovedUnusedDependencies = removeUnusedDependencies(fileData, dependencies, false);
+        removeUnusedDependencies(fileData, dependencies, false);
     }
 
-    if (hasRemovedUnusedDependencies) {
-        files = [...files, fileData];
-    }
-
+    files.push(fileData);
     const sourceModules = dependencies.filter(x => isSourceCodeModule(x));
     for (let i = 0; i < sourceModules.length; i++) {
-        transformFiles(basePath + sourceModules[i], basePath, files);
+        await transformFiles(basePath + sourceModules[i], basePath, files);
     }
 }
 
@@ -162,12 +186,10 @@ const transformFiles = async (filePath: string, basePath: string, files: FileDat
 export const vaporize = async (filePath: string) => {
     let files = [];
     await transformFiles(filePath, fileURLToPath(pathToFileURL(filePath)).replace(path.basename(filePath), ""), files);
-    console.log("# of files: " + files.length);
+    console.log("# of files: ", files.length);
 
-    for (let i = 0; i < files.length; i++) {
-        console.log(files[i]);
-    }
-
+    await compile(files);
+    // await compile()
     // make the temporary directory
     // write each source module file to the temporary directory
     // compile the temporary directory to javascript
