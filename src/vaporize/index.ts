@@ -133,13 +133,14 @@ const compile = async (files: FileData[]): Promise<string> => {
         // if the directory is in the temp build, write the file
         // if the directory is not in the temp build, create it
         // write the file to the new directory.
-        await fs.writeFile(tempDirectory + "src/" + files[i].filePath.replace(targetDirectory + "/", ""), files[i].file);
-        // try {
-        //     // await fs.mkdir(tempDirectory);
-        // } catch (e) {
-        // } finally {
-        //     await fs.unlink(tempFileName);
-        // }
+        try {
+            await fs.writeFile(tempDirectory + "src/" + files[i].filePath.replace(targetDirectory + "/", ""), files[i].file);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            await deleteDirectory(tempDirectory);
+            throw new Error("An error occurred while trying to write the file.")
+        }
     }
     await compileToJavaScript(tempDirectory);
     return tempDirectory;
