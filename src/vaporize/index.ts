@@ -35,8 +35,7 @@ const getFileData = async (filePath: string): Promise<any> => {
             filePath: filePath
         };
     }
-
-    throw new Error("Invalid file type.");
+    console.log("Skipping file at: ", filePath);
 }
 
 const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string>, isEsm: boolean): void => {
@@ -89,7 +88,6 @@ const compileToJavaScript = async (tempDirPath: string) => {
 const deleteDirectory = async (directoryPath: string): Promise<void> => {
     try {
         const dir = await fs.opendir(directoryPath);
-
         for await (const dirent of dir) {
           const filePath = path.join(directoryPath, dirent.name);
           if (dirent.isDirectory()) {
@@ -118,27 +116,52 @@ const createTsConfig = async (targetFile: string, tempDir: string): Promise<void
     await fs.writeFile(tempDir + "/tsconfig.json", JSON.stringify(config));
 }
 
-const compile = async (files: FileData[]): Promise<string> => {
-    const targetFile = path.resolve(files[0].filePath);
-    const targetDirectory = path.resolve(targetFile.replace(path.basename(targetFile), "").replace("/src", ""), path.dirname(files[0].filePath));
-    const uuid = randomUUID();
-    const tempDirectory = path.join(targetDirectory, "/", uuid, "/");
-    await fs.mkdir(tempDirectory);
-    await createTsConfig(targetFile, tempDirectory);
-    await fs.mkdir(tempDirectory + "src/");
+const createTempDirectories = async (sourcePath: string, tempPath: string): Promise<void> => {
+    if (path.extname(sourcePath)) {
+        sourcePath = sourcePath.replace(path.basename(sourcePath), "");
+    }
+    const sourcePathEnts = await fs.opendir(sourcePath);
+    for await (const dirent of sourcePathEnts) {
+        if (dirent.isDirectory() && !tempPath.includes(dirent.name)) {
+            const tempFilePath = path.join(tempPath, dirent.name);
+            await fs.mkdir(tempFilePath);
+            await createTempDirectories(sourcePath + dirent.name, tempFilePath);
+        }
+    }
+}
+
+const writeFilesToTempDirectory = async (files: FileData[], targetDirectory: string, tempDirectory: string): Promise<void> => {
     for (let i = 0; i < files.length; i++) {
-        // need to check for a directory
-        // if the directory is in the temp build, write the file
-        // if the directory is not in the temp build, create it
-        // write the file to the new directory.
         try {
-            await fs.writeFile(tempDirectory + "src" + files[i].filePath.replace(targetDirectory, ""), files[i].file);
+            await fs.writeFile(tempDirectory + files[i].filePath.replace(targetDirectory, ""), files[i].file);
         } catch (e) {
             console.error(e);
             await deleteDirectory(tempDirectory);
             throw new Error("An error occurred while trying to write the file.");
         }
     }
+}
+
+const createTempBuildDirectory = async (targetFile: string, tempDirectory: string): Promise<void> => {
+    await fs.mkdir(tempDirectory);
+    await createTsConfig(targetFile, tempDirectory);
+    await fs.mkdir(tempDirectory + "src/");
+    await createTempDirectories(targetFile, tempDirectory + "src");
+}
+
+const resolvePaths = (...paths: string[]): string => {
+    return path.resolve(...paths);
+}
+
+const compile = async (files: FileData[]): Promise<string> => {
+    const targetFile = resolvePaths(files[0].filePath);
+    const targetDirectory = resolvePaths(
+        targetFile.replace(path.basename(targetFile), "").replace("/src", ""),
+        path.dirname(files[0].filePath)
+    );
+    const tempDirectory = path.join(targetDirectory, "/", randomUUID(), "/");
+    await createTempBuildDirectory(targetFile, tempDirectory);
+    await writeFilesToTempDirectory(files, targetDirectory, tempDirectory + "src");
     await compileToJavaScript(tempDirectory);
     return tempDirectory;
 }
@@ -152,15 +175,15 @@ const getFilePath = (filePath: string): string => {
 }
 
 const transformFiles = async (filePath: string, basePath: string, files: FileData[]): Promise<void> => {
-    if (!path.extname(filePath)) {
-        const foundFile = checkIfFileExists(filePath);
-        if (foundFile) {
-            filePath = getFilePath(filePath);
-        }
-    } else {
+    if (path.extname(filePath)) {
         filePath = getFilePath(filePath);
+    } else {
+        filePath = checkIfFileExists(filePath);
     }
     const fileData = await getFileData(filePath);
+    if (!fileData) {
+        return;
+    }
     const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
     if (dependencies.length === 0) {
         files.push(fileData);
