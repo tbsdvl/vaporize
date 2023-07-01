@@ -13,3 +13,5 @@ const run = async () => {
 }
 
 run();
+
+export default vaporize;
