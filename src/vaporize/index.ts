@@ -246,7 +246,7 @@ const transformFileContent = async (filePath: string, basePath: string, files: F
     } else {
         filePath = checkIfFileExists(filePath);
         if (!filePath) {
-            console.log("Skipping file at: ", filePath);
+            console.log("Skipping file: ", filePath));
             return;
         }
     }
