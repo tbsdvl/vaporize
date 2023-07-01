@@ -181,7 +181,10 @@ const transformFiles = async (filePath: string, basePath: string, files: FileDat
         }
     }
     const fileData = await getFileData(filePath);
-    const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
+    const dependencies: Array<string> = precinct(
+        fileData.file,
+        { type: fileData.ext === EXTENSION.ts ? "ts" : null }
+    );
     if (dependencies.length === 0) {
         files.push(fileData);
         return;
