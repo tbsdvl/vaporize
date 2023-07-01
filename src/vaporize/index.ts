@@ -13,12 +13,6 @@ interface FileData {
     filePath: string;
 }
 
-/**
- * The error list.
- * @type {Array}
- */
-const ERROR_LIST = [];
-
 const modulePattern: RegExp = /(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=\s*require\s*\(\s*['"](.+?)['"]\s*\)|import\s*(.+?)\s*from\s*['"](.+?)['"]/gm;
 
 /**
@@ -116,37 +110,31 @@ const createTsConfig = async (targetFile: string, tempDir: string): Promise<void
     await fs.writeFile(tempDir + "/tsconfig.json", JSON.stringify(config));
 }
 
-const createTempDirectories = async (sourcePath: string, tempPath: string): Promise<void> => {
+const createTempDirectories = async (sourcePath: string, tempPath: string, tempDirId: string): Promise<void> => {
     if (path.extname(sourcePath)) {
         sourcePath = sourcePath.replace(path.basename(sourcePath), "");
     }
     const sourcePathEnts = await fs.opendir(sourcePath);
     for await (const dirent of sourcePathEnts) {
-        if (dirent.isDirectory() && !tempPath.includes(dirent.name)) {
+        if (dirent.isDirectory() && dirent.name !== tempDirId) {
             const tempFilePath = path.join(tempPath, dirent.name);
             await fs.mkdir(tempFilePath);
-            await createTempDirectories(sourcePath + dirent.name, tempFilePath);
+            await createTempDirectories(sourcePath + dirent.name, tempFilePath, tempDirId);
         }
     }
 }
 
 const writeFilesToTempDirectory = async (files: FileData[], targetDirectory: string, tempDirectory: string): Promise<void> => {
     for (let i = 0; i < files.length; i++) {
-        try {
-            await fs.writeFile(tempDirectory + files[i].filePath.replace(targetDirectory, ""), files[i].file);
-        } catch (e) {
-            console.error(e);
-            await deleteDirectory(tempDirectory);
-            throw new Error("An error occurred while trying to write the file.");
-        }
+        await fs.writeFile(tempDirectory + files[i].filePath.replace(targetDirectory, ""), files[i].file);
     }
 }
 
-const createTempBuildDirectory = async (targetFile: string, tempDirectory: string): Promise<void> => {
+const createTempBuildDirectory = async (targetFile: string, tempDirectory: string, tempDirId: string): Promise<void> => {
     await fs.mkdir(tempDirectory);
     await createTsConfig(targetFile, tempDirectory);
     await fs.mkdir(tempDirectory + "src/");
-    await createTempDirectories(targetFile, tempDirectory + "src");
+    await createTempDirectories(targetFile, tempDirectory + "src/", tempDirId);
 }
 
 const resolvePaths = (...paths: string[]): string => {
@@ -159,10 +147,19 @@ const compile = async (files: FileData[]): Promise<string> => {
         targetFile.replace(path.basename(targetFile), "").replace("/src", ""),
         path.dirname(files[0].filePath)
     );
-    const tempDirectory = path.join(targetDirectory, "/", randomUUID(), "/");
-    await createTempBuildDirectory(targetFile, tempDirectory);
-    await writeFilesToTempDirectory(files, targetDirectory, tempDirectory + "src");
-    await compileToJavaScript(tempDirectory);
+    const uuid = randomUUID();
+    const tempDirectory = path.join(targetDirectory, "/", uuid, "/");
+    try {
+        await createTempBuildDirectory(targetFile, tempDirectory, uuid);
+        await writeFilesToTempDirectory(files, targetDirectory, tempDirectory + "src");
+        await compileToJavaScript(tempDirectory);
+    } catch (e) {
+        console.error(e);
+        await deleteDirectory(tempDirectory);
+        throw new Error("An error occurred during the build.");
+    } finally {
+        await deleteDirectory(tempDirectory);
+    }
     return tempDirectory;
 }
 
@@ -179,11 +176,11 @@ const transformFiles = async (filePath: string, basePath: string, files: FileDat
         filePath = getFilePath(filePath);
     } else {
         filePath = checkIfFileExists(filePath);
+        if (!filePath) {
+            return;
+        }
     }
     const fileData = await getFileData(filePath);
-    if (!fileData) {
-        return;
-    }
     const dependencies: Array<string> = precinct(fileData.file, { type: fileData.ext === EXTENSION.ts ? "ts" : null });
     if (dependencies.length === 0) {
         files.push(fileData);
@@ -214,23 +211,4 @@ export const vaporize = async (filePath: string) => {
     console.log("# of files: ", files.length);
 
     await compile(files);
-    // await compile()
-    // make the temporary directory
-    // write each source module file to the temporary directory
-    // compile the temporary directory to javascript
-
-    // let tempFilePath: string;
-    // try {
-    //     if (hasRemovedUnusedDependencies) {
-    //         tempFilePath = await compile(filePath, fileData.file);
-    //     }
-    // } catch (e) {
-    //     console.error(e);
-    //     ERROR_LIST.push(e);
-    // } finally {
-    //     await deleteDirectory(tempFilePath);
-    //     if (ERROR_LIST.length === 0) {
-    //         await fs.writeFile(filePath, fileData.file);
-    //     }
-    // }
 }
