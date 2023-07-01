@@ -29,7 +29,6 @@ const getFileData = async (filePath: string): Promise<any> => {
             filePath: filePath
         };
     }
-    console.log("Skipping file at: ", filePath);
 }
 
 const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string>, isEsm: boolean): void => {
@@ -177,6 +176,7 @@ const transformFiles = async (filePath: string, basePath: string, files: FileDat
     } else {
         filePath = checkIfFileExists(filePath);
         if (!filePath) {
+            console.log("Skipping file at: ", filePath);
             return;
         }
     }
