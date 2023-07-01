@@ -227,6 +227,8 @@ const vaporizeDependencies = async (files: FileData[]) => {
 export const vaporize = async (filePath: string) => {
     let files = [];
     await transformFiles(filePath, getFilePath(filePath).replace(path.basename(filePath), ""), files);
-    await compile(files);
-    await vaporizeDependencies(files);
+    if (files.length > 0) {
+        await compile(files);
+        await vaporizeDependencies(files);
+    }
 }
