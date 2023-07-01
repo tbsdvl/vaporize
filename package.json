@@ -1,8 +1,8 @@
 {
   "name": "vaporize",
   "version": "1.0.0",
-  "description": "A tool for removing unused dependencies from JavaScript files.",
-  "main": "index.js",
+  "description": "A tool for removing unused JavaScript modules.",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --config jest.config.ts --coverage true --watchAll",
@@ -13,8 +13,8 @@
     "url": "git+https://github.com/tbsdvl/vaporize.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "tbsdvl",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/tbsdvl/vaporize/issues"
   },
