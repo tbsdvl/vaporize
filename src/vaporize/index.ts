@@ -20,6 +20,7 @@ const encoding = "utf-8";
 const tsConfigPath = '/src/lib/config/ts.json';
 const cjsConfigPath = '/src/lib/config/js.json';
 const src = "src/";
+const empty = "";
 
 /**
  * Gets the extension and contents of a file.
@@ -45,7 +46,7 @@ const getFileData = async (filePath: string): Promise<FileData> => {
  * @param {boolean} isEsm A value indicating whether or not the file uses ESM syntax.
  */
 const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string>, isEsm: boolean): void => {
-    const codeWithoutWhiteSpace: string = fileData.fileContent.replace(/\s/g, "");
+    const codeWithoutWhiteSpace: string = fileData.fileContent.replace(/\s/g, empty);
     const dependencyStatements = isEsm
       ? lib.getImports(dependencies, codeWithoutWhiteSpace)
       : lib.getRequirements(dependencies, codeWithoutWhiteSpace);
@@ -74,13 +75,13 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
         : String.raw`(const|let|var)[\/\s\/\{]*${unusedReferences[i]}[\/\s\/\}]*=[\/\s\/]*require\(["'][A-Za-z0-9\-\/\.\:\@]*["']\)[\/\s\/\;]*`;
         let matches: RegExpMatchArray = fileData.fileContent.match(new RegExp(pattern, "gm"));
         if (matches) {
-            fileData.fileContent = fileData.fileContent.replace(new RegExp(pattern, "gm"), "");
+            fileData.fileContent = fileData.fileContent.replace(new RegExp(pattern, "gm"), empty);
             continue;
         }
         pattern = String.raw`\b${unusedReferences[i]}\b,?[\/\s\/]*`;
         matches = fileData.fileContent.match(new RegExp(pattern));
         if (matches) {
-            fileData.fileContent = fileData.fileContent.replace(new RegExp(pattern), "");
+            fileData.fileContent = fileData.fileContent.replace(new RegExp(pattern), empty);
         }
     }
 }
@@ -161,7 +162,7 @@ const createTempDirectories = async (sourcePath: string, tempPath: string, tempD
  */
 const writeFilesToTempDirectory = async (files: FileData[], targetDirectory: string, tempDirectory: string): Promise<void> => {
     for (let i = 0; i < files.length; i++) {
-        await fs.writeFile(tempDirectory + files[i].filePath.replace(targetDirectory, ""), files[i].fileContent);
+        await fs.writeFile(tempDirectory + files[i].filePath.replace(targetDirectory, empty), files[i].fileContent);
     }
 }
 
@@ -195,7 +196,7 @@ const resolvePaths = (...paths: string[]): string => {
 const compile = async (files: FileData[]): Promise<string> => {
     const targetFile = resolvePaths(files[0].filePath);
     const targetDirectory = resolvePaths(
-        targetFile.replace(path.basename(targetFile), "").replace("/src", ""),
+        targetFile.replace(path.basename(targetFile), "").replace("/src", empty),
         path.dirname(files[0].filePath)
     );
     const uuid = randomUUID();
@@ -297,7 +298,7 @@ const overwriteFileContents = async (files: FileData[]) => {
  */
 export const vaporize = async (filePath: string) => {
     let files = [];
-    await transformFileContent(filePath, getFilePath(filePath).replace(path.basename(filePath), ""), files);
+    await transformFileContent(filePath, getFilePath(filePath).replace(path.basename(filePath), empty), files);
     if (files.length > 0) {
         await compile(files);
         await overwriteFileContents(files);
