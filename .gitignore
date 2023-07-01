@@ -6,4 +6,3 @@ dist/
 /coverage.data
 /coverage/
 node_modules/
-.env
