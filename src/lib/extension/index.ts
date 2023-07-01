@@ -8,10 +8,7 @@ import { EXTENSION } from "../../constants/extension.js";
  * @returns {string} The file's extension.
  */
 export const getFileExtension = (fileName: string): string => {
-    const extension = path.extname(fileName);
-    if (extension) {
-        return extension;
-    }
+    return path.extname(fileName);
 }
 
 export const checkIfFileExists = (fileName:string): string => {

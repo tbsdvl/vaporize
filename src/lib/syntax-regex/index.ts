@@ -48,7 +48,7 @@ export const getImports = (imps: string[], dependencyString: string): string[] =
 export const getVariableNames = (requirements: string[], dependencies: string[], isModuleType: boolean = false): string[] => {
     const variableNames: string[] = [];
     for (let i = 0; i < requirements.length; i++) {
-        let variableName = requirements[i].replace(new RegExp(isModuleType ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), ""); 
+        let variableName = requirements[i].replace(new RegExp(isModuleType ? esm(dependencies[i]) : commonJS(dependencies[i]), "gm"), "");
         if (variableName.includes("{")) {
             variableName = variableName.replace("{", "");
         }

@@ -11,6 +11,7 @@ interface FileData {
     ext: string;
     file: string;
     filePath: string;
+    hasRemovedDependencies: boolean;
 }
 
 const modulePattern: RegExp = /(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=\s*require\s*\(\s*['"](.+?)['"]\s*\)|import\s*(.+?)\s*from\s*['"](.+?)['"]/gm;
@@ -20,13 +21,14 @@ const modulePattern: RegExp = /(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=
  * @param {string} filePath The path to the file.
  * @returns A promise including the file extension and the file's contents.
  */
-const getFileData = async (filePath: string): Promise<any> => {
+const getFileData = async (filePath: string): Promise<FileData> => {
     const fileExtension = lib.getFileExtension(filePath);
     if (Object.values(EXTENSION).includes(fileExtension)) {
         return {
             ext: fileExtension,
             file: (await lib.readFile(filePath)).toString(),
-            filePath: filePath
+            filePath: filePath,
+            hasRemovedDependencies: false
         };
     }
 }
@@ -66,7 +68,7 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
             fileData.file = fileData.file.replace(new RegExp(pattern, "gm"), "");
             continue;
         }
-        pattern = String.raw`\b${unusedReferences[i]}\b,?`;
+        pattern = String.raw`\b${unusedReferences[i]}\b,?[\/\s\/]*`;
         matches = fileData.file.match(new RegExp(pattern));
         if (matches) {
             fileData.file = fileData.file.replace(new RegExp(pattern), "");
@@ -155,7 +157,7 @@ const compile = async (files: FileData[]): Promise<string> => {
     } catch (e) {
         console.error(e);
         await deleteDirectory(tempDirectory);
-        throw new Error("An error occurred during the build.");
+        console.error("An error occurred during the build.");
     } finally {
         await deleteDirectory(tempDirectory);
     }
@@ -180,8 +182,12 @@ const transformFiles = async (filePath: string, basePath: string, files: FileDat
             return;
         }
     }
+
     const fileData = await getFileData(filePath);
-    // check if file is in the array.
+    if (files.indexOf(fileData) !== -1) {
+        return;
+    }
+
     const dependencies: Array<string> = precinct(
         fileData.file,
         { type: fileData.ext === EXTENSION.ts ? "ts" : null }
@@ -197,10 +203,19 @@ const transformFiles = async (filePath: string, basePath: string, files: FileDat
         removeUnusedDependencies(fileData, dependencies, false);
     }
 
+    fileData.hasRemovedDependencies = true;
     files.push(fileData);
     const sourceModules = dependencies.filter(x => isSourceCodeModule(x));
     for (let i = 0; i < sourceModules.length; i++) {
         await transformFiles(basePath + sourceModules[i], basePath, files);
+    }
+}
+
+const vaporizeDependencies = async (files: FileData[]) => {
+    for (let i = 0; i < files.length; i++) {
+        if (files[i].hasRemovedDependencies) {
+            await fs.writeFile(files[i].filePath, files[i].file);
+        }
     }
 }
 
@@ -212,7 +227,6 @@ const transformFiles = async (filePath: string, basePath: string, files: FileDat
 export const vaporize = async (filePath: string) => {
     let files = [];
     await transformFiles(filePath, getFilePath(filePath).replace(path.basename(filePath), ""), files);
-    console.log("# of files: ", files.length);
-
     await compile(files);
+    await vaporizeDependencies(files);
 }

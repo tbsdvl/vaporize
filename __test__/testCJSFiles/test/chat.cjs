@@ -1,3 +1,4 @@
+const fs = require("fs");
 const test = "test";
 const test2 = "test2";
 module.exports = {
