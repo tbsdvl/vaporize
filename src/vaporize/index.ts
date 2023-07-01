@@ -298,7 +298,11 @@ const overwriteFileContents = async (files: FileData[]) => {
  */
 export const vaporize = async (filePath: string) => {
     let files = [];
-    await transformFileContent(filePath, getFilePath(filePath).replace(path.basename(filePath), empty), files);
+    await transformFileContent(
+        filePath,
+        getFilePath(filePath).replace(path.basename(filePath), empty),
+        files
+    );
     if (files.length > 0) {
         await compile(files);
         await overwriteFileContents(files);
