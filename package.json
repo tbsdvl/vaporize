@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --config jest.config.ts --coverage true --watchAll",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/src/index.js"
   },
   "repository": {
     "type": "git",
