@@ -2,7 +2,7 @@
   "name": "vaporize",
   "version": "1.0.0",
   "description": "A tool for removing unused JavaScript modules.",
-  "main": "src/index.js",
+  "main": "dist/src/index.js",
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest --config jest.config.ts --coverage true --watchAll",
