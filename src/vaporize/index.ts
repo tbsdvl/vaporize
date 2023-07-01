@@ -233,13 +233,13 @@ const getFilePath = (filePath: string): string => {
 }
 
 /**
- * Transforms the file if it has unused dependencies.
+ * Transforms the file's content if it has unused dependencies.
  * @param {string} filePath The file path.
  * @param {string} basePath The base path.
  * @param {FileData[]} files The list of files.
  * @returns
  */
-const transformFile = async (filePath: string, basePath: string, files: FileData[]): Promise<void> => {
+const transformFileContent = async (filePath: string, basePath: string, files: FileData[]): Promise<void> => {
     if (path.extname(filePath)) {
         filePath = getFilePath(filePath);
     } else {
@@ -274,7 +274,7 @@ const transformFile = async (filePath: string, basePath: string, files: FileData
     files.push(fileData);
     const sourceModules = dependencies.filter(x => isSourceCodeModule(x));
     for (let i = 0; i < sourceModules.length; i++) {
-        await transformFile(basePath + sourceModules[i], basePath, files);
+        await transformFileContent(basePath + sourceModules[i], basePath, files);
     }
 }
 
@@ -297,7 +297,7 @@ const overwriteFileContents = async (files: FileData[]) => {
  */
 export const vaporize = async (filePath: string) => {
     let files = [];
-    await transformFile(filePath, getFilePath(filePath).replace(path.basename(filePath), ""), files);
+    await transformFileContent(filePath, getFilePath(filePath).replace(path.basename(filePath), ""), files);
     if (files.length > 0) {
         await compile(files);
         await overwriteFileContents(files);
