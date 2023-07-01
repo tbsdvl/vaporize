@@ -181,6 +181,7 @@ const transformFiles = async (filePath: string, basePath: string, files: FileDat
         }
     }
     const fileData = await getFileData(filePath);
+    // check if file is in the array.
     const dependencies: Array<string> = precinct(
         fileData.file,
         { type: fileData.ext === EXTENSION.ts ? "ts" : null }
