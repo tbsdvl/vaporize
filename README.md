@@ -24,7 +24,7 @@ Can install vaporize using npm.
 vaporize uses the typescript compiler to make a temporary build of your ES6 JavaScript and TypeScript files.
 --->
 
-Initalize a new npm project.
+Initalize a new `npm` project.
 ```bash
 npm init -y
 ```
