@@ -35,7 +35,7 @@ npm i typescript vaporize
 ```
 
 ## Description
-`vaporize` will scan a TypeScript or JavaScript file using ESM syntax and find references to imported modules. Each file is copied into a temporary directory excluding unused modules if any are found. The temporary directory of copied files is used as a safety net to compile a build using `tsc`. Files are only overwritten with text from the copies if the temporary directory successfully created a build without any errors at compile time. The temporary directory is deleted once the build completes or if any errors occur during compilation.
+`vaporize` will scan a TypeScript or JavaScript file that uses ESM syntax and find references to imported modules. Each file is copied into a temporary directory excluding unused modules if any are found. The temporary directory of copied files is used as a safety net to compile a build using `tsc`. Files are only overwritten with text from the copies if the temporary directory successfully created a build without any errors at compile time. The temporary directory is deleted once the build completes or if any errors occur during compilation.
 
 ## Example
 
