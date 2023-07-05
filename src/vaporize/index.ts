@@ -16,9 +16,22 @@ interface FileData {
 }
 
 const modulePattern: RegExp = /(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=\s*require\s*\(\s*['"](.+?)['"]\s*\)|import\s*(.+?)\s*from\s*['"](.+?)['"]/gm;
-const encoding = "utf-8";
-const tsConfigPath = '/src/lib/config/ts.json';
-const cjsConfigPath = '/src/lib/config/js.json';
+const node_modules = "node_modules";
+const tsConfigJson = {
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+    }
+};
+const cjsConfigPath = {
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "allowJs": true,
+         "target": "ES2017",
+         "module": "CommonJS"
+    }
+};
 const src = "src/";
 const empty = "";
 
@@ -57,7 +70,7 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     const modules = fileData.fileContent.match(modulePattern);
     let codeNoModules = fileData.fileContent;
     for (let i = 0; i < modules.length; i++) {
-        codeNoModules = codeNoModules.replace(modules[i], "");
+        codeNoModules = codeNoModules.replace(modules[i], empty);
     }
 
     for (let i = 0; i < variableNames.length; i++) {
@@ -126,11 +139,10 @@ const createTsConfig = async (targetFile: string, tempDirPath: string): Promise<
     let config: Buffer | any;
     const extension = lib.getFileExtension(targetFile);
     if (extension === EXTENSION.ts) {
-        config = await fs.readFile(`${path.resolve()}${tsConfigPath}`, encoding);
+        config = tsConfigJson;
     } else {
-        config = await fs.readFile(`${path.resolve()}${cjsConfigPath}`, encoding);
+        config = cjsConfigPath;
     }
-    config = JSON.parse(config);
     config.include = [`src/**/*${extension}`];
     await fs.writeFile(tempDirPath + "/tsconfig.json", JSON.stringify(config));
 }
@@ -143,10 +155,10 @@ const createTsConfig = async (targetFile: string, tempDirPath: string): Promise<
  */
 const createTempDirectories = async (sourcePath: string, tempPath: string, tempDirId: string): Promise<void> => {
     if (path.extname(sourcePath)) {
-        sourcePath = sourcePath.replace(path.basename(sourcePath), "");
+        sourcePath = sourcePath.replace(path.basename(sourcePath), empty);
     }
     for await (const dirent of await fs.opendir(sourcePath)) {
-        if (dirent.isDirectory() && dirent.name !== tempDirId) {
+        if (dirent.isDirectory() && dirent.name !== tempDirId && dirent.name !== node_modules) {
             const tempFilePath = path.join(tempPath, dirent.name);
             await fs.mkdir(tempFilePath);
             await createTempDirectories(sourcePath + dirent.name, tempFilePath, tempDirId);
@@ -196,7 +208,7 @@ const resolvePaths = (...paths: string[]): string => {
 const compile = async (files: FileData[]): Promise<string> => {
     const targetFile = resolvePaths(files[0].filePath);
     const targetDirectory = resolvePaths(
-        targetFile.replace(path.basename(targetFile), "").replace("/src", empty),
+        targetFile.replace(path.basename(targetFile), empty).replace("/src", empty),
         path.dirname(files[0].filePath)
     );
     const uuid = randomUUID();
@@ -221,12 +233,12 @@ const compile = async (files: FileData[]): Promise<string> => {
  * @returns {boolean} A value indicating whether or not the file path points to a source code module.
  */
 const isSourceCodeModule = (filePath: string): boolean => {
-    return (filePath.startsWith('./') || filePath.startsWith('../') || filePath.startsWith('/')) && !filePath.includes("node_modules");
+    return (filePath.startsWith('./') || filePath.startsWith('../') || filePath.startsWith('/')) && !filePath.includes(node_modules);
 }
 
 /**
  * Gets the file path.
- * @param {sring} filePath
+ * @param {string} filePath
  * @returns {string} The file path.
  */
 const getFilePath = (filePath: string): string => {
@@ -265,6 +277,7 @@ const transformFileContent = async (filePath: string, basePath: string, files: F
         return;
     }
 
+    // find regex patterns on "import" from other branch
     if ((fileData.ext === EXTENSION.js && fileData.fileContent.includes("import")) || fileData.ext === EXTENSION.ts) {
         removeUnusedDependencies(fileData, dependencies, true);
     } else if (fileData.ext === EXTENSION.cjs || fileData.ext === EXTENSION.js) {
