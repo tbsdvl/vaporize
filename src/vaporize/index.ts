@@ -138,11 +138,7 @@ const deleteDirectory = async (directoryPath: string): Promise<void> => {
 const createTsConfig = async (targetFile: string, tempDirPath: string): Promise<void> => {
     let config: Buffer | any;
     const extension = lib.getFileExtension(targetFile);
-    if (extension === EXTENSION.ts) {
-        config = tsConfigJson;
-    } else {
-        config = cjsConfigPath;
-    }
+    config = extension === EXTENSION.ts ? tsConfigJson : cjsConfigPath;
     config.include = [`src/**/*${extension}`];
     await fs.writeFile(tempDirPath + "/tsconfig.json", JSON.stringify(config));
 }
