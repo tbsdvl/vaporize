@@ -1,11 +1,8 @@
 import { ExecException, execFile } from "node:child_process";
-import { moduleType } from "../index.js";
 
-export const executeFilePromise = async (fileName: string): Promise<boolean | ExecException | string> => {
+export const compileToJavaScriptPromise = async (tempDir: string): Promise<boolean | ExecException | string> => {
     return new Promise((resolve, reject) => {
-        execFile(
-            'node', 
-            [moduleType === "module" ? '--trace-warnings=true --experimental-specifier-resolution=node' : "", fileName], 
+        execFile('npx', ["tsc", "--project", tempDir, "--outDir", (tempDir + "dist")], { shell: true },
             (error, stdout, stderr) => {
                 if (error) {
                     reject(error);

@@ -1,3 +1,3 @@
-import fs from "node:fs";
+import { readFileSync } from "node:fs";
 
-export default fs;
+export default readFileSync;
