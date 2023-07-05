@@ -260,7 +260,7 @@ const transformFileContent = async (filePath: string, basePath: string, files: F
     }
 
     const fileData = await getFileData(filePath);
-    if (files.indexOf(fileData) !== -1) {
+    if (!fileData || files.indexOf(fileData) !== -1) {
         return;
     }
 
