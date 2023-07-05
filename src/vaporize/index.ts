@@ -16,6 +16,7 @@ interface FileData {
 }
 
 const modulePattern: RegExp = /(import|const|let|var)\s*({[\s\S]*?}|[^\s=]+)\s*=\s*require\s*\(\s*['"](.+?)['"]\s*\)|import\s*(.+?)\s*from\s*['"](.+?)['"]/gm;
+const esmImportPattern: RegExp = /import\s*(.+?)\s*from\s*['"](.+?)['"]/g;
 const node_modules = "node_modules";
 const tsConfigJson = {
     "compilerOptions": {
@@ -273,8 +274,7 @@ const transformFileContent = async (filePath: string, basePath: string, files: F
         return;
     }
 
-    // find regex patterns on "import" from other branch
-    if ((fileData.ext === EXTENSION.js && fileData.fileContent.includes("import")) || fileData.ext === EXTENSION.ts) {
+    if ((fileData.ext === EXTENSION.js && fileData.fileContent.match(esmImportPattern)?.length) || fileData.ext === EXTENSION.ts) {
         removeUnusedDependencies(fileData, dependencies, true);
     } else if (fileData.ext === EXTENSION.cjs || fileData.ext === EXTENSION.js) {
         removeUnusedDependencies(fileData, dependencies, false);
