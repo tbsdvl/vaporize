@@ -46,6 +46,11 @@ Install with `git clone`
 git clone https://github.com/tbsdvl/vaporize.git
 ```
 
+`vaporize` uses the TypeScript compiler to make a temporary build of JavaScript files from your code. You will need `npm` and install `typescript`.
+```bash
+npm i typescript
+```
+
 ## Description
 `vaporize` will scan a TypeScript or JavaScript file that uses ESM syntax and find references to imported modules. Each file is copied into a temporary directory excluding unused modules if any are found. The temporary directory of copied files is used as a safety net to compile a build using `tsc`. Files are only overwritten with text from the copies if the temporary directory successfully created a build without any errors at compile time. The temporary directory is deleted once the build completes or if any errors occur during compilation.
 
