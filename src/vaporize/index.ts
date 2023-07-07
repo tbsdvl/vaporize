@@ -318,6 +318,8 @@ export const vaporize = async (filePath: string) => {
     );
     if (files.length > 0) {
         await compile(files);
+        console.log("Build succeeded. VAPORIZING...");
         await overwriteFileContents(files);
+        console.log(`vaporize removed unused dependencies in ${files.length} files.`);
     }
 }
