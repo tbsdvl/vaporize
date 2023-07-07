@@ -35,6 +35,7 @@ const cjsConfigPath = {
 };
 const src = "src/";
 const empty = "";
+const git = ".git";
 
 /**
  * Gets the extension and contents of a file.
@@ -155,7 +156,7 @@ const createTempDirectories = async (sourcePath: string, tempPath: string, tempD
         sourcePath = sourcePath.replace(path.basename(sourcePath), empty);
     }
     for await (const dirent of await fs.opendir(sourcePath)) {
-        if (dirent.isDirectory() && dirent.name !== tempDirId && dirent.name !== node_modules) {
+        if (dirent.isDirectory() && dirent.name !== tempDirId && dirent.name !== node_modules && dirent.name !== git) {
             const tempFilePath = path.join(tempPath, dirent.name);
             await fs.mkdir(tempFilePath);
             await createTempDirectories(sourcePath + dirent.name, tempFilePath, tempDirId);
