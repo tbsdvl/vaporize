@@ -56,9 +56,8 @@ npm i typescript
 
 ## Example
 
-<!--
-![](docs/images/example.gif)
--->
+https://github.com/tbsdvl/vaporize/assets/76135007/9c3869ae-65e4-4cc6-89e8-3ad2c96e26a7
+
 
 ## Limitations
 
