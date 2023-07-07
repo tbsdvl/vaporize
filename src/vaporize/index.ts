@@ -315,6 +315,6 @@ export const vaporize = async (filePath: string) => {
         await compile(files);
         console.log("Build succeeded. VAPORIZING...");
         await overwriteFileContents(files);
-        console.log(`vaporize removed unused dependencies in ${files.length} files.`);
+        console.log(`vaporize successfully removed unused dependencies.`);
     }
 }
