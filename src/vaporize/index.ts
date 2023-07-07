@@ -284,7 +284,7 @@ const transformFileContent = async (filePath: string, basePath: string, files: F
     files.push(fileData);
     const sourceModules = dependencies.filter(x => isSourceCodeModule(x));
     for (let i = 0; i < sourceModules.length; i++) {
-        await transformFileContent(basePath + sourceModules[i], basePath, files);
+        await transformFileContent(fileData.filePath.replace(path.basename(fileData.filePath), empty) + sourceModules[i], basePath, files);
     }
 }
 
