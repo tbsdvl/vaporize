@@ -249,11 +249,10 @@ const getFilePath = (filePath: string): string => {
 /**
  * Transforms the file's content if it has unused dependencies.
  * @param {string} filePath The file path.
- * @param {string} basePath The base path.
  * @param {FileData[]} files The list of files.
  * @returns
  */
-const transformFileContent = async (filePath: string, basePath: string, files: FileData[]): Promise<void> => {
+const transformFileContent = async (filePath: string, files: FileData[]): Promise<void> => {
     if (path.extname(filePath)) {
         filePath = getFilePath(filePath);
     } else {
@@ -288,7 +287,7 @@ const transformFileContent = async (filePath: string, basePath: string, files: F
     files.push(fileData);
     const sourceModules = dependencies.filter(x => isSourceCodeModule(x));
     for (let i = 0; i < sourceModules.length; i++) {
-        await transformFileContent(fileData.filePath.replace(path.basename(fileData.filePath), empty) + sourceModules[i], basePath, files);
+        await transformFileContent(fileData.filePath.replace(path.basename(fileData.filePath), empty) + sourceModules[i], files);
     }
 }
 
@@ -311,11 +310,7 @@ const overwriteFileContents = async (files: FileData[]) => {
  */
 export const vaporize = async (filePath: string) => {
     let files = [];
-    await transformFileContent(
-        filePath,
-        getFilePath(filePath).replace(path.basename(filePath), empty),
-        files
-    );
+    await transformFileContent(filePath, files);
     if (files.length > 0) {
         await compile(files);
         console.log("Build succeeded. VAPORIZING...");
