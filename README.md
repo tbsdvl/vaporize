@@ -18,6 +18,9 @@ This project is a work in progress and is not yet available in the `npm` registr
 - <a href="#description">Description</a>
 - <a href="#example">Example</a>
 - <a href="#limitations">Limitations</a>
+- <a href="#dependencies">Dependencies</a>
+- <a href="#credits">Credits</a>
+- <a href="#license">License</a>
 
 
 ## Installation
@@ -56,3 +59,19 @@ Will put a gif here of a project showing installation, unused dependencies, runn
 
 <!-- vaporize cannot be required using CommonJS syntax. --->
 - `vaporize` cannot be `required` in a JavaScript file using CommonJS syntax.
+
+## Dependencies
+
+`vaporize` currently includes the following dependencies.
+
+- precinct: 10.0.1 <a href="https://github.com/dependents/node-precinct">https://github.com/dependents/node-precinct</a>
+- jest: 29.5.0 <a href="https://github.com/jestjs/jest">https://github.com/jestjs/jest</a>
+- ts-jest: 29.1.0 <a href="https://github.com/kulshekhar/ts-jest">https://github.com/kulshekhar/ts-jest</a>
+- ts-node: 10.9.1 <a href="https://github.com/TypeStrong/ts-node">https://github.com/TypeStrong/ts-node</a>
+- typescript: 17.0.2 <a href="https://www.typescriptlang.org">https://www.typescriptlang.org</a>
+
+## Credits
+`vaporize` is built by Triston Burns.
+
+## License
+`vaporize` is open source software licensed as MIT.
