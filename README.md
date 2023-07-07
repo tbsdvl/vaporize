@@ -65,6 +65,10 @@ https://github.com/tbsdvl/vaporize/assets/76135007/81f4722a-4833-4174-9686-bc998
 
 <!-- vaporize cannot be required using CommonJS syntax. --->
 - `vaporize` cannot be `required` in a JavaScript file using CommonJS syntax.
+- `vaporize` will not recognize differently named imports using `as`:
+  ```javascript
+  import { myModule as myNewName } from "/modules/my-module.js";
+  ```
 
 ## Dependencies
 
