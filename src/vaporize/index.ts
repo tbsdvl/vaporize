@@ -80,7 +80,6 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     }
 
     if (unusedReferences.length === 0) {
-        console.log("No unused dependencies found.");
         return;
     }
 
@@ -309,6 +308,7 @@ const overwriteFileContents = async (files: FileData[]) => {
  * @returns
  */
 export const vaporize = async (filePath: string) => {
+    console.log("Transforming files...");
     let files = [];
     await transformFileContent(filePath, files);
     if (files.length > 0) {
@@ -316,5 +316,7 @@ export const vaporize = async (filePath: string) => {
         console.log("Build succeeded. VAPORIZING...");
         await overwriteFileContents(files);
         console.log(`vaporize successfully removed unused dependencies.`);
+    } else {
+        console.log("No unused dependencies found.");
     }
 }
