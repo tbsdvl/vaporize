@@ -35,6 +35,7 @@ const cjsConfigPath = {
 };
 const src = "src/";
 const empty = "";
+const git = ".git";
 
 /**
  * Gets the extension and contents of a file.
@@ -79,7 +80,6 @@ const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string
     }
 
     if (unusedReferences.length === 0) {
-        console.log("No unused dependencies found.");
         return;
     }
 
@@ -155,10 +155,13 @@ const createTempDirectories = async (sourcePath: string, tempPath: string, tempD
         sourcePath = sourcePath.replace(path.basename(sourcePath), empty);
     }
     for await (const dirent of await fs.opendir(sourcePath)) {
-        if (dirent.isDirectory() && dirent.name !== tempDirId && dirent.name !== node_modules) {
+        if (dirent.isDirectory() && dirent.name !== tempDirId && dirent.name !== node_modules && dirent.name !== git) {
             const tempFilePath = path.join(tempPath, dirent.name);
             await fs.mkdir(tempFilePath);
-            await createTempDirectories(sourcePath + dirent.name, tempFilePath, tempDirId);
+            if (sourcePath.endsWith("/")) {
+                sourcePath = sourcePath.slice(0, sourcePath.length - 1);
+            }
+            await createTempDirectories(sourcePath + `/${dirent.name}`, tempFilePath, tempDirId);
         }
     }
 }
@@ -245,11 +248,10 @@ const getFilePath = (filePath: string): string => {
 /**
  * Transforms the file's content if it has unused dependencies.
  * @param {string} filePath The file path.
- * @param {string} basePath The base path.
  * @param {FileData[]} files The list of files.
  * @returns
  */
-const transformFileContent = async (filePath: string, basePath: string, files: FileData[]): Promise<void> => {
+const transformFileContent = async (filePath: string, files: FileData[]): Promise<void> => {
     if (path.extname(filePath)) {
         filePath = getFilePath(filePath);
     } else {
@@ -284,7 +286,7 @@ const transformFileContent = async (filePath: string, basePath: string, files: F
     files.push(fileData);
     const sourceModules = dependencies.filter(x => isSourceCodeModule(x));
     for (let i = 0; i < sourceModules.length; i++) {
-        await transformFileContent(basePath + sourceModules[i], basePath, files);
+        await transformFileContent(fileData.filePath.replace(path.basename(fileData.filePath), empty) + sourceModules[i], files);
     }
 }
 
@@ -306,14 +308,15 @@ const overwriteFileContents = async (files: FileData[]) => {
  * @returns
  */
 export const vaporize = async (filePath: string) => {
+    console.log("Transforming files...");
     let files = [];
-    await transformFileContent(
-        filePath,
-        getFilePath(filePath).replace(path.basename(filePath), empty),
-        files
-    );
+    await transformFileContent(filePath, files);
     if (files.length > 0) {
         await compile(files);
+        console.log("Build succeeded. VAPORIZING...");
         await overwriteFileContents(files);
+        console.log(`vaporize successfully removed unused dependencies.`);
+    } else {
+        console.log("No unused dependencies found.");
     }
 }
