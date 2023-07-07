@@ -10,6 +10,9 @@ import vaporize from "vaporize";
 })();
 ```
 
+## **DISCLAIMER**
+This project is a work in progress and is not yet available in the `npm` registry. Please clone the repository and use it with caution if you would like to try out `vaporize`.
+
 ## Table of Contents
 - <a href="#installation">Installation</a>
 - <a href="#description">Description</a>
@@ -23,7 +26,7 @@ import vaporize from "vaporize";
 Can install vaporize using npm.
 vaporize uses the typescript compiler to make a temporary build of your ES6 JavaScript and TypeScript files.
 --->
-
+<!--
 Initalize a new `npm` project.
 ```bash
 npm init -y
@@ -32,6 +35,12 @@ npm init -y
 Install `vaporize`.
 ```bash
 npm i typescript vaporize
+```
+-->
+
+Install with `git clone`
+```bash
+git clone https://github.com/tbsdvl/vaporize.git
 ```
 
 ## Description
@@ -46,3 +55,4 @@ Will put a gif here of a project showing installation, unused dependencies, runn
 ## Limitations
 
 <!-- vaporize cannot be required using CommonJS syntax. --->
+- `vaporize` cannot be `required` in a JavaScript file using CommonJS syntax.
