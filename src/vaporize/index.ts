@@ -159,7 +159,10 @@ const createTempDirectories = async (sourcePath: string, tempPath: string, tempD
         if (dirent.isDirectory() && dirent.name !== tempDirId && dirent.name !== node_modules && dirent.name !== git) {
             const tempFilePath = path.join(tempPath, dirent.name);
             await fs.mkdir(tempFilePath);
-            await createTempDirectories(sourcePath + dirent.name, tempFilePath, tempDirId);
+            if (sourcePath.endsWith("/")) {
+                sourcePath = sourcePath.slice(0, sourcePath.length - 1);
+            }
+            await createTempDirectories(sourcePath + `/${dirent.name}`, tempFilePath, tempDirId);
         }
     }
 }
