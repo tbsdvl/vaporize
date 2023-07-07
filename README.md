@@ -57,8 +57,8 @@ npm i typescript
 ## Example
 
 <!--
-Will put a gif here of a project showing installation, unused dependencies, running vaporize, and showing the effects.
---->
+![](docs/images/example.gif)
+-->
 
 ## Limitations
 
