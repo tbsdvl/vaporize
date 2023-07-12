@@ -6,7 +6,7 @@ A package for removing unused JavaScript modules.
 import vaporize from "vaporize";
 
 (async () => {
-    await vaporize("index.js");
+    await vaporize("./index.js");
 })();
 ```
 
