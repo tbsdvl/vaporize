@@ -50,7 +50,7 @@ npm i typescript
 ```
 
 ## Description
-`vaporize` will scan a TypeScript or JavaScript file that uses ESM syntax and find references to imported modules. Each file is copied into a temporary directory excluding unused modules if any are found. The temporary directory is used as a safety net to compile a build of JavaScript files using `tsc`. Files are only overwritten with text from the copies if the temporary directory successfully created a build without any errors at compile time. The temporary directory is deleted once the build completes or if any errors occur during compilation.
+`vaporize`  scans a collection of TypeScript or JavaScript source files that utilize the ESM (ECMAScript Module) syntax. It identifies references to imported modules within these source files. Each source file is duplicated into a temporary directory, excluding any modules that are determined to be unused. This temporary directory serves as a safeguard for compiling a set of JavaScript files using the TypeScript compiler (tsc). The original source files are only replaced with the content from the duplicates if the temporary directory successfully generates a build without encountering any compilation errors. If any errors arise during the compilation process, or once the build is completed, the temporary directory is deleted as part of the cleanup procedure.
 
 ## Example
 
