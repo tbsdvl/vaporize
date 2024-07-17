@@ -9,7 +9,7 @@ vaporize("./index.js");
 ```
 
 ## **DISCLAIMER**
-This project is a work in progress and is not yet available in the `npm` registry. Please clone the repository and use it with caution if you would like to try out `vaporize`.
+This project is a work in progress and is not yet available in the `npm` registry. Please fork the repository and use it with caution if you would like to try out `vaporize`.
 
 ## Table of Contents
 - <a href="#installation">Installation</a>
@@ -39,14 +39,11 @@ npm i typescript vaporize
 ```
 -->
 
-Install with `git clone`
-```bash
-git clone https://github.com/tbsdvl/vaporize.git
-```
 
-`vaporize` uses the TypeScript compiler to make a temporary build of JavaScript files from your code. You will need `npm` and install `typescript`.
+`vaporize` relies on npm packages to search for file dependencies, run tests, and create temporary builds of JavaScript files from your code.
+Navigate to the project's root folder then run the following command within a terminal.
 ```bash
-npm i typescript
+npm i
 ```
 
 ## Description
