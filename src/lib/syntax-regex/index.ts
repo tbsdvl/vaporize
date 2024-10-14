@@ -19,32 +19,28 @@ export const esm = (imp: string, hasImport: boolean = false): string => {
 };
 
 /**
- * Gets a matching dependency.
- * @param dependencyName The name of the dependency.
- * @param dependencyString The code for importing a dependency as a string.
+ * Gets a matching module.
+ * @param moduleName The name of the module.
+ * @param dependencyString The stringified code for importing a dependency.
  * @param isESM A value indicating whether or not the dependency is an ECMAScript module.
- * @returns
+ * @returns The matching module.
  */
-const getMatchingDependency = (dependencyName: string, dependencyString: string, isESM: boolean = false): string => {
-    dependencyName = dependencyName.replace(/\./gm, "\\.");
-    dependencyName = dependencyName.replace(/\//gm, "\\/");
-    const depRegExp: RegExp = new RegExp(isESM ? esm(dependencyName, true) : commonJS(dependencyName, true), "gm");
+const getMatchingModule = (moduleName: string, dependencyString: string, isESM: boolean = false): string => {
+    moduleName = moduleName.replace(/\./gm, "\\.");
+    moduleName = moduleName.replace(/\//gm, "\\/");
+    const depRegExp: RegExp = new RegExp(isESM ? esm(moduleName, true) : commonJS(moduleName, true), "gm");
     return dependencyString.match(depRegExp)?.[0] || "";
 }
 
-export const getRequirements = (dependencies: string[], dependencyString: string): string[] => {
-    return dependencies.map((dependency: string) => {
-        const match = getMatchingDependency(dependency, dependencyString);
-        if (match) {
-            dependencyString = dependencyString.replace(new RegExp(String.raw`["']${dependency}["']`), "");
-            return match;
-        }
-    }).filter(x => x);
-}
-
-export const getImports = (imps: string[], dependencyString: string): string[] => {
-    return imps.map((imp: string) => {
-        const match = getMatchingDependency(imp, dependencyString, true);
+/**
+ * Gets the list of modules from a file's dependencies.
+ * @param moduleNames The list of module names.
+ * @param dependencyString The stringified code for importing the dependencies.
+ * @returns The list of a file's modules.
+ */
+export const getModules = (moduleNames: string[], dependencyString: string, isESM: boolean = false): string[] => {
+    return moduleNames.map((imp: string) => {
+        const match = getMatchingModule(imp, dependencyString, isESM);
         if (match) {
             dependencyString = dependencyString.replace(new RegExp(String.raw`["']${imp}["']`), "");
             return match;

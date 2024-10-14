@@ -4,8 +4,7 @@ import { getFileExtension } from "./extension/index.js";
 import {
     commonJS,
     esm,
-    getRequirements,
-    getImports,
+    getModules,
     getVariableNames,
     findVariableReferences
 } from "./syntax-regex/index.js";
@@ -16,8 +15,7 @@ export {
     readFile,
     commonJS,
     esm,
-    getRequirements,
-    getImports,
+    getModules,
     getVariableNames,
     getFileExtension,
     findVariableReferences,
