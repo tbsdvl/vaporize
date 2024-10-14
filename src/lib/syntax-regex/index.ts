@@ -18,16 +18,23 @@ export const esm = (imp: string, hasImport: boolean = false): string => {
   return hasImport ? String.raw`(?<=import)\{*[A-Za-z0-9,]*\}*from["']${imp}["']` : String.raw`from["']${imp}["']`;
 };
 
-const getDependencyMatch = (dependency: string, dependencyString: string, isModuleType: boolean = false): string => {
-    dependency = dependency.replace(/\./gm, "\\.");
-    dependency = dependency.replace(/\//gm, "\\/");
-    const depRegExp: RegExp = new RegExp(isModuleType ? esm(dependency, true) : commonJS(dependency, true), "gm");
+/**
+ * Gets a matching dependency.
+ * @param dependencyName The name of the dependency.
+ * @param dependencyString The code for importing a dependency as a string.
+ * @param isESM A value indicating whether or not the dependency is an ECMAScript module.
+ * @returns
+ */
+const getMatchingDependency = (dependencyName: string, dependencyString: string, isESM: boolean = false): string => {
+    dependencyName = dependencyName.replace(/\./gm, "\\.");
+    dependencyName = dependencyName.replace(/\//gm, "\\/");
+    const depRegExp: RegExp = new RegExp(isESM ? esm(dependencyName, true) : commonJS(dependencyName, true), "gm");
     return dependencyString.match(depRegExp)?.[0] || "";
 }
 
 export const getRequirements = (dependencies: string[], dependencyString: string): string[] => {
     return dependencies.map((dependency: string) => {
-        const match = getDependencyMatch(dependency, dependencyString);
+        const match = getMatchingDependency(dependency, dependencyString);
         if (match) {
             dependencyString = dependencyString.replace(new RegExp(String.raw`["']${dependency}["']`), "");
             return match;
@@ -37,7 +44,7 @@ export const getRequirements = (dependencies: string[], dependencyString: string
 
 export const getImports = (imps: string[], dependencyString: string): string[] => {
     return imps.map((imp: string) => {
-        const match = getDependencyMatch(imp, dependencyString, true);
+        const match = getMatchingDependency(imp, dependencyString, true);
         if (match) {
             dependencyString = dependencyString.replace(new RegExp(String.raw`["']${imp}["']`), "");
             return match;
