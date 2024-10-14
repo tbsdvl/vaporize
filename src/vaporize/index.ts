@@ -62,9 +62,7 @@ const getFileData = async (filePath: string): Promise<FileData> => {
  */
 const removeUnusedDependencies = (fileData: FileData, dependencies: Array<string>, isEsm: boolean): void => {
     const codeWithoutWhiteSpace: string = fileData.fileContent.replace(/\s/g, empty);
-    const dependencyStatements = isEsm
-      ? lib.getImports(dependencies, codeWithoutWhiteSpace)
-      : lib.getRequirements(dependencies, codeWithoutWhiteSpace);
+    const dependencyStatements = lib.getModules(dependencies, codeWithoutWhiteSpace, isEsm);
     const variableNames = lib.getVariableNames(dependencyStatements, dependencies, isEsm);
     const unusedReferences: Array<string> = [];
 

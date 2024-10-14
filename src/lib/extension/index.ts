@@ -11,18 +11,23 @@ export const getFileExtension = (fileName: string): string => {
     return path.extname(fileName);
 }
 
-export const checkIfFileExists = (fileName:string): string => {
-    if (fs.existsSync(fileName + EXTENSION.js)) {
-        return fileName + EXTENSION.js;
-    } else if (fs.existsSync(fileName + "/index" + EXTENSION.js)) {
-        return `${fileName}/index${EXTENSION.js}`;
-    } else if (fs.existsSync(fileName + EXTENSION.cjs)) {
-        return fileName + EXTENSION.cjs;
-    } else if (fs.existsSync(fileName + "/index" + EXTENSION.cjs)) {
-        return `${fileName}/index${EXTENSION.cjs}`;
-    } else if (fs.existsSync(fileName + EXTENSION.ts)) {
-        return fileName + EXTENSION.ts;
-    } else if (fs.existsSync(fileName + "/index" + EXTENSION.ts)) {
-        return `${fileName}/index${EXTENSION.ts}`;
+/**
+ * Checks if whether or not a file exists.
+ * @param filePath The file path.
+ * @returns The path to the index file with the correct file extension.
+ */
+export const checkIfFileExists = (filePath:string): string => {
+    if (fs.existsSync(filePath + EXTENSION.js)) {
+        return filePath + EXTENSION.js;
+    } else if (fs.existsSync(filePath + "/index" + EXTENSION.js)) {
+        return `${filePath}/index${EXTENSION.js}`;
+    } else if (fs.existsSync(filePath + EXTENSION.cjs)) {
+        return filePath + EXTENSION.cjs;
+    } else if (fs.existsSync(filePath + "/index" + EXTENSION.cjs)) {
+        return `${filePath}/index${EXTENSION.cjs}`;
+    } else if (fs.existsSync(filePath + EXTENSION.ts)) {
+        return filePath + EXTENSION.ts;
+    } else if (fs.existsSync(filePath + "/index" + EXTENSION.ts)) {
+        return `${filePath}/index${EXTENSION.ts}`;
     }
 }
